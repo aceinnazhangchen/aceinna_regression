@@ -1,7 +1,8 @@
 {
     "workspace_root":"E:\\WorkSpace\\aceinna_regression_workspace\\",
     "src_ins_exe":"E:\\WorkSpace\\aceinna_regression_workspace\\_ins_exe\\INS.exe",
+    "src_rtk_exe":"E:\\WorkSpace\\aceinna_regression_workspace\\_ins_exe\\msvc.exe",
     "bin_file_folder":"bin",
     "raw_data_folder":"raw_data",
-    "process_config_file":"content_aceinna30_turn.txt"
+    "ins_config_file":"content_aceinna30_turn.txt"
 }

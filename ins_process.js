@@ -33,7 +33,7 @@ function file_process(parent_dir,item){
     let fullPath = path.join(parent_dir, item);
     const stat = fs.statSync(fullPath);
     if (stat.isFile())  return false;
-    let process_config_file_Path = path.join(fullPath,setting.process_config_file);
+    let process_config_file_Path = path.join(fullPath,setting.ins_config_file);
     if(fs.existsSync(process_config_file_Path) == false) return false;
     let process_config = JSON.parse(fs.readFileSync(process_config_file_Path));
     process_config.procfileNme = replease_local_path(parent_dir,process_config.procfileNme);
@@ -64,7 +64,8 @@ function walkInDir_process(indir,process_func) {
 
 async function run(git_ver){
     const git_ver_bin = "INS-"+git_ver+".exe";
-    const bin_file_dir = path.join(setting.workspace_root,setting.bin_file_folder);
+    const bin_file_dir = path.join(setting.workspace_root,setting.bin_file_folder,"INS");
+    mkdirsSync(bin_file_dir);
     bin_file = path.join(bin_file_dir,git_ver_bin);
     //拷贝文件带有git版本号
     var cmd = `copy /Y ${setting.src_ins_exe} ${bin_file}`;
