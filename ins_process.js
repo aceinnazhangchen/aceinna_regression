@@ -63,6 +63,8 @@ function walkInDir_process(indir,process_func) {
 }
 
 async function run(git_ver){
+    var args = process.argv.splice(2)
+	console.log(args);
     const git_ver_bin = "INS-"+git_ver+".exe";
     const bin_file_dir = path.join(setting.workspace_root,setting.bin_file_folder,"INS");
     mkdirsSync(bin_file_dir);

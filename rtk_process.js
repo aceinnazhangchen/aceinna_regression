@@ -78,6 +78,8 @@ function gen_data_ini(){
 }
 
 async function run(git_ver){
+    var args = process.argv.splice(2)
+	console.log(args);
     const git_ver_bin = "RTK-"+git_ver+".exe";
     bin_file_dir = path.join(setting.workspace_root,setting.bin_file_folder,"RTK");
     mkdirsSync(bin_file_dir);
