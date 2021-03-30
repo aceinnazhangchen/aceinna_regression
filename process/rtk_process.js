@@ -3,8 +3,8 @@ const path = require("path");
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const spawnSync = require('child_process').spawnSync;
-const setting = require('./config/process_setting.json');
-const process_path = require('./config/process_path.json');
+const setting = require('../config/process_setting.json');
+const process_path = require('../config/process_path.json');
 
 const git_ver_def = "1111111";
 const Rtcm_Rover_Header = "rtcm_rover_";
@@ -112,11 +112,9 @@ async function run(git_ver){
     await exec(cmd);
     //遍历生成配置文件
     gen_data_ini();
-    //spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
+    spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
     move_result_data(git_ver);
     spawnSync('matlab',['-sd',setting.matlab_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze'],{stdio: 'inherit'});
-    //cmd = `matlab -sd ${setting.matlab_script_path} -nojvm -nosplash -nodesktop -r main_rtk_csv_analyze`;
-    //await exec(cmd);
     console.log('OK');
 }
 
