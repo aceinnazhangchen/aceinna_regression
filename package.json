@@ -1,0 +1,27 @@
+{
+  "name": "aceinna_regression",
+  "version": "1.0.0",
+  "description": "Aceinna regression system",
+  "main": "gen_pdf.js",
+  "dependencies": {
+    "html-pdf": "^2.2.0",
+    "jspdf": "^2.3.1",
+    "moment": "^2.29.1",
+    "phantomjs": "^2.1.7",
+    "wkhtmltopdf": "^0.3.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aceinnazhangchen/aceinna_regression.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aceinnazhangchen/aceinna_regression/issues"
+  },
+  "homepage": "https://github.com/aceinnazhangchen/aceinna_regression#readme"
+}

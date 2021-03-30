@@ -4,5 +4,7 @@
     "src_rtk_exe":"E:\\WorkSpace\\aceinna_regression_workspace\\_ins_exe\\msvc.exe",
     "bin_file_folder":"bin",
     "raw_data_folder":"raw_data",
-    "ins_config_file":"content_aceinna30_turn.txt"
+    "result_data_folder":"result_data",
+    "ins_config_file":"content_aceinna30_turn.txt",
+    "matlab_script_path":"E:\\WorkSpace\\aceinna_regression_workspace\\matlab_tool\\matlab_script"
 }

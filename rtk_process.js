@@ -10,6 +10,7 @@ const git_ver_def = "1111111";
 const Rtcm_Rover_Header = "rtcm_rover_";
 const Rtcm_Base_Header = "rtcm_base_";
 const Bin_Ext = ".bin";
+const Csv_Ext = ".csv";
 
 var bin_file_dir = "";
 var bin_file = "";
@@ -25,11 +26,9 @@ function mkdirsSync(dirname) {
     }
 }
 
-
 function data2doy(year,month,day){
     const month_leapyear=[31,29,31,30,31,30,31,31,30,31,30,31];
     const month_notleap= [31,28,31,30,31,30,31,31,30,31,30,31];
-
     var doy=0;
     if (month > 1){
         if(year%4==0 && (year%100!=0 || year%400==0)){
@@ -43,14 +42,14 @@ function data2doy(year,month,day){
             }   
         }
     }
-
     doy+=day
     return doy
 }
 
 function gen_data_ini(){
-    var fd=fs.openSync("data.ini","w");
+    var data_fd=fs.openSync(path.join(bin_file_dir,"data.ini"),"w");
     process_path.RTK.forEach((indir,i) => {
+        indir = path.join(setting.workspace_root,setting.raw_data_folder,indir);
         if(fs.existsSync(indir)){
             const files = fs.readdirSync(indir);
             var rover_file = "";
@@ -68,13 +67,36 @@ function gen_data_ini(){
                 let year = time_sp[2],month = time_sp[3],day = time_sp[4];
                 let doy = data2doy(parseInt(year),parseInt(month),parseInt(day));
                 var line_str = util.format("4,%s\r\n",indir);
-                fs.writeSync(fd,line_str);
+                fs.writeSync(data_fd,line_str);
                 line_str =  util.format("1,%s,%s,0,0,0,%s,%s,0\r\n",rover_file,base_file,year,doy);
-                fs.writeSync(fd,line_str);
+                fs.writeSync(data_fd,line_str);
             }
         } 
     });
-    fs.closeSync(fd);
+    fs.closeSync(data_fd);
+}
+
+function move_result_data(git_ver){
+    process_path.RTK.forEach((dir,i) => {
+        var indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
+        var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
+        if(fs.existsSync(indir)){
+            mkdirsSync(outdir);
+            const files = fs.readdirSync(indir);
+            var out_csv_file = "";
+            files.forEach((file,j) => {
+                let ext = path.extname(file);
+                if(Csv_Ext == ext || ".nmea" == ext || ".kml" == ext || ".kmz" == ext){
+                    if(file.search(Rtcm_Rover_Header) == 0){
+                        fs.renameSync(path.join(indir,file),path.join(outdir,file));
+                    }
+                    if(Csv_Ext == ext){
+                        out_csv_file = path.join(outdir,file);
+                    }
+                }
+            });
+        }
+    });
 }
 
 async function run(git_ver){
@@ -88,14 +110,14 @@ async function run(git_ver){
     var cmd = `copy /Y ${setting.src_rtk_exe} ${bin_file}`;
     console.log(cmd);
     await exec(cmd);
-    //遍历并执行程序
-    // const raw_data_root = path.join(setting.workspace_root,setting.raw_data_folder);
-    // walkInDir_process(raw_data_root,file_process);
-    //生成配置文件
+    //遍历生成配置文件
     gen_data_ini();
-    cmd = `cd ${bin_file_dir}`;
-    await exec(cmd);
-    spawnSync(bin_file,[">out.log"],{stdio: 'inherit'});
+    //spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
+    move_result_data(git_ver);
+    spawnSync('matlab',['-sd',setting.matlab_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze'],{stdio: 'inherit'});
+    //cmd = `matlab -sd ${setting.matlab_script_path} -nojvm -nosplash -nodesktop -r main_rtk_csv_analyze`;
+    //await exec(cmd);
+    console.log('OK');
 }
 
 run(git_ver_def);

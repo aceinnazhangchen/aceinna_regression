@@ -1,5 +1,19 @@
 {
     "RTK":[
-        "E:\\WorkSpace\\aceinna_regression_workspace\\raw_data\\2021\\regression\\openrtk_log_20210313_163041"
+        "openrtk_log_20210308_165345"
+    ],
+    "RTK-bak":[
+        "openrtk_log_20210308_165345",
+        "openrtk_log_20210308_193904",
+        "openrtk_log_20210308_205551",
+        "openrtk_log_20210308_212637",
+        "openrtk_log_20210310_151033",
+        "openrtk_log_20210310_154037",
+        "openrtk_log_20210313_163041",
+        "openrtk_log_20210313_163103",
+        "openrtk_log_20210313_182543",
+        "openrtk_log_20210313_182617",
+        "openrtk_log_20210322_094649",
+        "openrtk_log_20210322_094736"
     ]
 }
