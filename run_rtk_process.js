@@ -92,8 +92,8 @@ function move_result_data(git_ver){
                 let ext = path.extname(file);
                 if(Csv_Ext == ext || ".nmea" == ext || ".kml" == ext || ".kmz" == ext){
                     if(file.search(Rtcm_Rover_Header) == 0){
-                        //fs.renameSync(path.join(indir,file),path.join(outdir,file));//移动文件
-                        fs.copyFileSync(path.join(indir,file),path.join(outdir,file));//拷贝文件
+                        fs.renameSync(path.join(indir,file),path.join(outdir,file));//移动文件
+                        //fs.copyFileSync(path.join(indir,file),path.join(outdir,file));//拷贝文件
                     }
                     if(Csv_Ext == ext){
                         out_csv_file = path.join(outdir,file);
