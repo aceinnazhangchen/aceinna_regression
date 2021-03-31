@@ -49,7 +49,7 @@ function data2doy(year,month,day){
 
 function gen_data_ini(){
     var data_fd=fs.openSync(path.join(bin_file_dir,"data.ini"),"w");
-    process_path.RTK.forEach((indir,i) => {
+    process_path.List.forEach((indir,i) => {
         indir = path.join(setting.workspace_root,setting.raw_data_folder,indir);
         if(fs.existsSync(indir)){
             const files = fs.readdirSync(indir);
@@ -81,7 +81,7 @@ function move_result_data(git_ver){
     var matlab_fd = fs.openSync(path.join(matlab_script_path,"rtk.ini"),"w");
     var rtk_map = fs.readFileSync(path.join(__dirname,"config/rtk_map.ini"));
     var rtk_map_sp = rtk_map.toString().split('\r\n');
-    process_path.RTK.forEach((dir,i) => {
+    process_path.List.forEach((dir,i) => {
         var indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
         if(fs.existsSync(indir)){
@@ -102,8 +102,11 @@ function move_result_data(git_ver){
                                 console.log(rtk_map_sp[i]);
                                 let ref_file = rtk_map_sp[i].split(",")[1]; 
                                 let ref_path = path.join(setting.workspace_root,setting.raw_data_folder,setting.ref_files_folder,ref_file);
-                                let line_str = ref_path+","+out_csv_file+",1\r\n";
-                                fs.writeSync(matlab_fd,line_str);
+                                if(fs.existsSync(ref_path)){
+                                    let line_str = ref_path+","+out_csv_file+",1\r\n";
+                                    fs.writeSync(matlab_fd,line_str);
+                                }
+                                break;
                             }
                         }
                     }
@@ -115,7 +118,7 @@ function move_result_data(git_ver){
 }
 
 function gen_pdf_files(git_ver){
-    process_path.RTK.forEach((dir,i) => {
+    process_path.List.forEach((dir,i) => {
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
         if(fs.existsSync(outdir)){
             const files = fs.readdirSync(outdir);
@@ -133,22 +136,29 @@ function gen_pdf_files(git_ver){
 async function run(){
     var args = process.argv.splice(2)
 	console.log(args);
-    git_ver = args[0];
+    let git_ver = args[0];
     mkdirsSync(path.join(__dirname,"output"));
     const git_ver_bin = "RTK-"+git_ver+".exe";
+    //rtk执行文件目标目录
     bin_file_dir = path.join(setting.workspace_root,setting.bin_file_folder,"RTK");
     mkdirsSync(bin_file_dir);
+    //rtk执行文件路径
     bin_file = path.join(bin_file_dir,git_ver_bin);
+    //matlab脚本路径
+    matlab_script_path = path.join(__dirname,'matlab_script');
     //拷贝文件带有git版本号
     var cmd = `copy /Y "${setting.src_rtk_exe}" "${bin_file}"`;
     console.log(cmd);
     await exec(cmd);
     //遍历生成配置文件
     gen_data_ini();
+    //运行rtk后处理
     spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
+    //将结果移动到结果文件夹
     move_result_data(git_ver);
-    matlab_script_path = path.join(__dirname,'matlab_script');
-    spawnSync('matlab',['-sd',matlab_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','matlab.log'],{stdio: 'inherit'});
+    //运行matlab分析结果生成图表
+    spawnSync('matlab',['-sd',matlab_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','../output/matlab.log'],{stdio: 'inherit'});
+    //将结果图生成pdf
     gen_pdf_files(git_ver);
     console.log('OK');
 }

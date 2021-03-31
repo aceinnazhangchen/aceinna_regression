@@ -4,8 +4,9 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const spawnSync = require('child_process').spawnSync;
 const setting = require('./config/process_setting.json');
+const process_path = require('./config/process_path.json');
+const ins_config_template = require('./config/ins_config_template.json');
 
-const git_ver_def = "1111111";
 var bin_file = "";
 
 function mkdirsSync(dirname) {
@@ -62,9 +63,17 @@ function walkInDir_process(indir,process_func) {
     });
 }
 
-async function run(git_ver){
+function gen_ins_data_config(git_ver){
+    process_path.List.forEach((dir,i) => {
+        let indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
+        console.log(indir);
+    });
+}
+
+async function run(){
     var args = process.argv.splice(2)
 	console.log(args);
+    let git_ver = args[0];
     const git_ver_bin = "INS-"+git_ver+".exe";
     const bin_file_dir = path.join(setting.workspace_root,setting.bin_file_folder,"INS");
     mkdirsSync(bin_file_dir);
@@ -73,9 +82,11 @@ async function run(git_ver){
     var cmd = `copy /Y ${setting.src_ins_exe} ${bin_file}`;
     console.log(cmd);
     await exec(cmd);
+    //遍历生成配置文件
+    gen_ins_data_config(git_ver);
     //遍历并执行程序
-    const raw_data_root = path.join(setting.workspace_root,setting.raw_data_folder);
-    walkInDir_process(raw_data_root,file_process);
+    // const raw_data_root = path.join(setting.workspace_root,setting.raw_data_folder);
+    // walkInDir_process(raw_data_root,file_process);
 }
 
-run(git_ver_def);
+run();

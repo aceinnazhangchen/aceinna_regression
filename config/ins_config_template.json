@@ -1,0 +1,97 @@
+{
+    "procType": 0,
+    "procfileNme": "user_2021_01_27_15_33_19-process",
+    "gnssfileNme": "user_2021_01_27_15_33_19-gnssposvel.txt",
+    "insfileName": "user_2021_01_27_15_33_19-imu.txt",
+    "odofileName": "user_2021_01_27_15_33_19-odo.txt",
+    "CarrierMode": 0,
+    "initialAttitudeMode": 0,
+    "attitueRPH": [
+        0,
+        0,
+        0
+    ],
+    "imuSensorType": 1,
+    "imuDataRate": 100,
+    "gnssSensorType": 0,
+    "gnssDataType": 3,
+    "gnssDataRate": 1,
+    "useGNSSRate": 1,
+    "odoDataRate": 10,
+    "priLeverArm": [
+        1.19,
+        -0.24,
+        -0.9
+    ],
+    "isUseDuaAnt": 0,
+    "secLeverArm": [
+        0,
+        0,
+        0
+    ],
+    "rotationRBV": [
+        0,
+        0,
+        0
+    ],
+    "IsUseMisAlignment": 1,
+    "MisAlignmentAiax": [
+        1,
+        2,
+        3
+    ],
+    "MisAlignment": [
+        0,
+        0,
+        0
+    ],
+    "isTiltCalibrationRIGHT": 0,
+    "isUseTiltCalibration": 0,
+    "isOnlineMisAlignmentEst": 0,
+    "isUseNHC": 1,
+    "odoLeverarm": [
+        0,
+        0,
+        0
+    ],
+    "isUseGNSSVel": 0,
+    "isUseOdo": 1,
+    "odoScale": 1,
+    "isUseZUPT": 1,
+    "isUseZUPTLOCK": 1,
+    "accBias": [
+        0,
+        0,
+        0
+    ],
+    "gyroBias": [
+        0,
+        0,
+        0
+    ],
+    "accScale": [
+        1,
+        1,
+        1
+    ],
+    "gyroScale": [
+        1,
+        1,
+        1
+    ],
+    "isUserOutPut": 1,
+    "userLeverArm": [
+        1.19,
+        -0.24,
+        -0.9
+    ],
+    "fileOutputType": 2,
+    "profiletype": 280,
+    "isKmlOutput": 1,
+    "kmlOutputDateRate": 1,
+    "gnssOutputDataRate": 1,
+    "insOutputDataRate": 10,
+    "GNSSinterrupt": [
+       
+    ]
+}
