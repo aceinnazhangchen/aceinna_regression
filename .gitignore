@@ -1,3 +1,5 @@
 *.log
 data.ini
 node_modules/
+output/
+matlab_script/rtk.ini

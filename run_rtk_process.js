@@ -3,6 +3,7 @@ const path = require("path");
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const spawnSync = require('child_process').spawnSync;
+const pdf = require('./pdf/pdf.js');
 const setting = require('./config/process_setting.json');
 const process_path = require('./config/process_path.json');
 
@@ -113,6 +114,22 @@ function move_result_data(git_ver){
     fs.closeSync(matlab_fd);
 }
 
+function gen_pdf_files(git_ver){
+    process_path.RTK.forEach((dir,i) => {
+        var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
+        if(fs.existsSync(outdir)){
+            const files = fs.readdirSync(outdir);
+            files.forEach((file,j) => {
+                let ext = path.extname(file);                
+                if(Csv_Ext == ext && file.search(Rtcm_Rover_Header) == 0){
+                    let basename = path.basename(file,Csv_Ext);
+                    pdf.gen_pdf(outdir,basename+'.pdf',file);
+                }
+            });
+        }
+    });
+}
+
 async function run(){
     var args = process.argv.splice(2)
 	console.log(args);
@@ -128,9 +145,10 @@ async function run(){
     await exec(cmd);
     //遍历生成配置文件
     gen_data_ini();
-    //spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
+    spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
     move_result_data(git_ver);
     spawnSync('matlab',['-sd',setting.matlab_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze'],{stdio: 'inherit'});
+    gen_pdf_files(git_ver);
     console.log('OK');
 }
 
