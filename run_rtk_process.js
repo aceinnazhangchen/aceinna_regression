@@ -140,14 +140,14 @@ async function run(){
     mkdirsSync(bin_file_dir);
     bin_file = path.join(bin_file_dir,git_ver_bin);
     //拷贝文件带有git版本号
-    var cmd = `copy /Y ${setting.src_rtk_exe} ${bin_file}`;
+    var cmd = `copy /Y "${setting.src_rtk_exe}" "${bin_file}"`;
     console.log(cmd);
     await exec(cmd);
     //遍历生成配置文件
     gen_data_ini();
     spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
     move_result_data(git_ver);
-    spawnSync('matlab',['-sd',setting.matlab_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze'],{stdio: 'inherit'});
+    spawnSync('matlab',['-sd',setting.matlab_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','matlab.log'],{stdio: 'inherit'});
     gen_pdf_files(git_ver);
     console.log('OK');
 }
