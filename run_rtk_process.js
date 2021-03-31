@@ -7,7 +7,6 @@ const pdf = require('./pdf/pdf.js');
 const setting = require('./config/process_setting.json');
 const process_path = require('./config/process_path.json');
 
-const git_ver_def = "1111111";
 const Rtcm_Rover_Header = "rtcm_rover_";
 const Rtcm_Base_Header = "rtcm_base_";
 const Bin_Ext = ".bin";
@@ -15,6 +14,7 @@ const Csv_Ext = ".csv";
 
 var bin_file_dir = "";
 var bin_file = "";
+var matlab_script_path = "";
 
 function mkdirsSync(dirname) {
     if (fs.existsSync(dirname)) {
@@ -78,7 +78,7 @@ function gen_data_ini(){
 }
 
 function move_result_data(git_ver){
-    var matlab_fd = fs.openSync(path.join(setting.matlab_script_path,"rtk.ini"),"w");
+    var matlab_fd = fs.openSync(path.join(matlab_script_path,"rtk.ini"),"w");
     var rtk_map = fs.readFileSync(path.join(__dirname,"config/rtk_map.ini"));
     var rtk_map_sp = rtk_map.toString().split('\r\n');
     process_path.RTK.forEach((dir,i) => {
@@ -147,7 +147,8 @@ async function run(){
     gen_data_ini();
     spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
     move_result_data(git_ver);
-    spawnSync('matlab',['-sd',setting.matlab_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','matlab.log'],{stdio: 'inherit'});
+    matlab_script_path = path.join(__dirname,'matlab_script');
+    spawnSync('matlab',['-sd',matlab_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','matlab.log'],{stdio: 'inherit'});
     gen_pdf_files(git_ver);
     console.log('OK');
 }
