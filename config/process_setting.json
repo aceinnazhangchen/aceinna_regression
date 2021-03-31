@@ -5,6 +5,7 @@
     "bin_file_folder":"bin",
     "raw_data_folder":"raw_data",
     "result_data_folder":"result_data",
+    "ref_files_folder":"novatel",
     "ins_config_file":"content_aceinna30_turn.txt",
-    "matlab_script_path":"E:\\WorkSpace\\aceinna_regression_workspace\\matlab_tool\\matlab_script"
+    "matlab_script_path":"E:\\WorkSpace\\aceinna_regression\\matlab_script"
 }

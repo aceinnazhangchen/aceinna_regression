@@ -3,8 +3,8 @@ const path = require("path");
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const spawnSync = require('child_process').spawnSync;
-const setting = require('../config/process_setting.json');
-const process_path = require('../config/process_path.json');
+const setting = require('./config/process_setting.json');
+const process_path = require('./config/process_path.json');
 
 const git_ver_def = "1111111";
 const Rtcm_Rover_Header = "rtcm_rover_";
@@ -63,10 +63,10 @@ function gen_data_ini(){
                 }
             });
             if(rover_file != "" && base_file != ""){
-                var time_sp = rover_file.split("_");
+                let time_sp = rover_file.split("_");
                 let year = time_sp[2],month = time_sp[3],day = time_sp[4];
                 let doy = data2doy(parseInt(year),parseInt(month),parseInt(day));
-                var line_str = util.format("4,%s\r\n",indir);
+                let line_str = util.format("4,%s\r\n",indir);
                 fs.writeSync(data_fd,line_str);
                 line_str =  util.format("1,%s,%s,0,0,0,%s,%s,0\r\n",rover_file,base_file,year,doy);
                 fs.writeSync(data_fd,line_str);
@@ -77,31 +77,47 @@ function gen_data_ini(){
 }
 
 function move_result_data(git_ver){
+    var matlab_fd = fs.openSync(path.join(setting.matlab_script_path,"rtk.ini"),"w");
+    var rtk_map = fs.readFileSync(path.join(__dirname,"config/rtk_map.ini"));
+    var rtk_map_sp = rtk_map.toString().split('\r\n');
     process_path.RTK.forEach((dir,i) => {
         var indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
         if(fs.existsSync(indir)){
             mkdirsSync(outdir);
             const files = fs.readdirSync(indir);
-            var out_csv_file = "";
+            let out_csv_file = "";
             files.forEach((file,j) => {
                 let ext = path.extname(file);
                 if(Csv_Ext == ext || ".nmea" == ext || ".kml" == ext || ".kmz" == ext){
                     if(file.search(Rtcm_Rover_Header) == 0){
-                        fs.renameSync(path.join(indir,file),path.join(outdir,file));
+                        //fs.renameSync(path.join(indir,file),path.join(outdir,file));//移动文件
+                        fs.copyFileSync(path.join(indir,file),path.join(outdir,file));//拷贝文件
                     }
                     if(Csv_Ext == ext){
                         out_csv_file = path.join(outdir,file);
+                        for(let i = 0;i < rtk_map_sp.length; i++){
+                            if(rtk_map_sp[i].search(file) == 0){
+                                console.log(rtk_map_sp[i]);
+                                let ref_file = rtk_map_sp[i].split(",")[1]; 
+                                let ref_path = path.join(setting.workspace_root,setting.raw_data_folder,setting.ref_files_folder,ref_file);
+                                let line_str = ref_path+","+out_csv_file+",1\r\n";
+                                fs.writeSync(matlab_fd,line_str);
+                            }
+                        }
                     }
                 }
             });
         }
     });
+    fs.closeSync(matlab_fd);
 }
 
-async function run(git_ver){
+async function run(){
     var args = process.argv.splice(2)
 	console.log(args);
+    git_ver = args[0];
+    mkdirsSync(path.join(__dirname,"output"));
     const git_ver_bin = "RTK-"+git_ver+".exe";
     bin_file_dir = path.join(setting.workspace_root,setting.bin_file_folder,"RTK");
     mkdirsSync(bin_file_dir);
@@ -112,10 +128,10 @@ async function run(git_ver){
     await exec(cmd);
     //遍历生成配置文件
     gen_data_ini();
-    spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
+    //spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
     move_result_data(git_ver);
     spawnSync('matlab',['-sd',setting.matlab_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze'],{stdio: 'inherit'});
     console.log('OK');
 }
 
-run(git_ver_def);
+run();
