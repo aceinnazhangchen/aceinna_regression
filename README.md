@@ -1,12 +1,7 @@
 Aceinna regression system
 
-run rtk process 
-```
-node .\run_rtk_process.js git-version > out.log
-```
-
-run ins process 
+run process
 
 ```
-node .\run_ins_process.js git-version > out.log
+node .\run.js git-version > out.log
 ```

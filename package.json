@@ -2,7 +2,7 @@
   "name": "aceinna_regression",
   "version": "1.0.0",
   "description": "Aceinna regression system",
-  "main": "run_ins_process.js",
+  "main": "run.js",
   "dependencies": {
     "pdfjs": "^2.4.2",
     "wkhtmltopdf": "^0.3.4"
