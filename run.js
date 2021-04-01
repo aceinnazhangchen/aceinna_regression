@@ -6,10 +6,14 @@ const analysis = require("./run_analysis.js");
 async function run(){
     var args = process.argv.splice(2)
 	console.log(args);
-    let git_ver = args[0];
-    if(git_ver.length == 40){
-        git_ver = git_ver.substr(0,7);
+    let git_ver = "git-version";
+    if(args.length > 0){
+        git_ver = args[0];
+        if(git_ver.length == 40){
+            git_ver = git_ver.substr(0,7);
+        }
     }
+
     await rtk_process.run(git_ver);
     await ins_process.run(git_ver);
     await analysis.run(git_ver);
