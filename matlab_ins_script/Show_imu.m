@@ -41,7 +41,7 @@ else
 end
 linkaxes(ax,'x');
 title("IMU");
-saveas(fh,[outputfilefolder 'imu.fig']);
+saveas(fh,[outputfilefolder 'imu.jpg']);
 dt= sort(abs(dt-mean_dt)/mean_dt);
 err_95p =dt(round(0.95*(N-1)));
 err_99p =dt(round(0.99*(N-1)));
@@ -53,5 +53,5 @@ fprintf(fp_debug,'IMU Abnormal time stability :%10.4f,%10.4f,%10.4f,%10.4f \n',e
 %  hist(dt, 0.005:0.001:ceil(max(dt)/0.1)*0.1); grid on;
 %  xlabel('Interval (sec)'), ylabel('Point number'), title('Histograph of the DR sampling interval');
 %  title("IMU interval");
-% saveas(gcf,[outputfilefolder 'imuinterval.fig']);
+% saveas(gcf,[outputfilefolder 'imuinterval.jpg']);
 end

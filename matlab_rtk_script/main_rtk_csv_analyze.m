@@ -1,6 +1,12 @@
 close all;
 clear;
 clc;
+res_folder = 'output\';
+subf = strcat('..\',res_folder);
+fid1=fopen(strcat(subf,'\rtk_statistic.txt'),'w');  
+%fprintf(fid1,'              dataset         rms-fix 50p-fix 68p-fix 95p-fix 99p-fix rms-flt 50p-flt 68p-flt 95p-flt 99p-flt 50p-all 68p-all 95p-all 99p-all fix rate num_all\n'); 
+fprintf(fid1,'dataset,type,50p-fix,68p-fix,95p-fix,99p-fix, 50p-flt,68p-flt,95p-flt,99p-flt,50p-all,68p-all,95p-all,99p-all,fix rate,num_all\n'); 
+
 
 soldif.fixrate=[];
 soldif.num_all=[];

@@ -5,13 +5,13 @@ function ret = show_cep_plot(hor_err,ver_err, mod, filename)
     figure
     if (mod(1)==1)
 %        rtk_err=[hor_50p_all,hor_68p_all,hor_95p_all,hor_99p_all];
-       set(gca,'xticklabel',{'','CEP50','CEP68','CEP95','CEP99',''});
-       ylim(gca, [0 5]);
-       set(gca,'FontWeight','bold','FontSize',11);
-       ylabel(gca, 'Horizontal error (m)')
        bc=bar(rtk_err(1,:)');
        set(bc,'facecolor',[0 0.5 0]);
        set(gca,'FontWeight','bold','FontSize',11);
+       set(gca,'xticklabel',{'CEP50','CEP68','CEP95','CEP99'});
+       ylim(gca, [0 5]);
+       set(gca,'FontWeight','bold','FontSize',11);
+       ylabel(gca, 'Horizontal error (m)')
        for i=1:4
          text(i-0.25,min(rtk_err(1,i),4.5),num2str(rtk_err(1,i),'%.2f'),...
          'FontWeight','bold','HorizontalAlignment','center',...
@@ -20,13 +20,13 @@ function ret = show_cep_plot(hor_err,ver_err, mod, filename)
        box on;
     elseif (mod(2)==1)
 %        rtk_err=[hor_50p_all,hor_68p_all,hor_95p_all,hor_99p_all];
+       bc=bar(rtk_err(2,:)');
+       set(bc,'facecolor',[0 0.5 0]);
+       set(gca,'FontWeight','bold','FontSize',11);
        set(gca,'xticklabel',{'','CEP50','CEP68','CEP95','CEP99',''});
        ylim(gca, [0 5]);
        set(gca,'FontWeight','bold','FontSize',11);
        ylabel(gca, 'Horizontal error (m)')
-       bc=bar(rtk_err(2,:)');
-       set(bc,'facecolor',[0 0.5 0]);
-       set(gca,'FontWeight','bold','FontSize',11);
        for i=1:4
          text(i-0.25,min(rtk_err(2,i),4.5),num2str(rtk_err(2,i),'%.2f'),...
          'FontWeight','bold','HorizontalAlignment','center',...

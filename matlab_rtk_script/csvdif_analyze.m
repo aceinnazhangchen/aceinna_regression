@@ -75,11 +75,11 @@ function [soldif, pos_err, vel_err] = csvdif_analyze(sol_rov, sol_ref)
     
     hor_flt  =[hor_50p_flt hor_68p_flt hor_95p_flt hor_99p_flt];
     hor_fixed=[hor_50p_fix hor_68p_fix hor_95p_fix hor_99p_fix];
-    hor_all  =[hor_50p_all hor_68p_all hor_95p_fix hor_99p_all];
+    hor_all  =[hor_50p_all hor_68p_all hor_95p_all hor_99p_all];
     
     ver_flt  =[ver_50p_flt ver_68p_flt ver_95p_flt ver_99p_flt];
     ver_fixed=[ver_50p_fix ver_68p_fix hor_95p_fix ver_99p_fix];
-    ver_all  =[ver_50p_all ver_68p_all hor_95p_fix ver_99p_all];
+    ver_all  =[ver_50p_all ver_68p_all hor_95p_all ver_99p_all];
     
     soldif.rms_hor_fix   = rms_hor_fix;
     soldif.rms_ver_fix   = rms_ver_fix;
