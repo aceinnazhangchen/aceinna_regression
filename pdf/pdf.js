@@ -1,8 +1,309 @@
 const pdf = require('pdfjs');
 const fs = require('fs');
 const path = require('path');
+const moment = require('moment');
 
-function gen_pdf(data_path,pdf_name,data_name){
+function gen_single_pdf(output_path, pdf_name, data_name){
+  const output = fs.createWriteStream(path.join(output_path, pdf_name));
+  const doc = new pdf.Document();
+
+  const pdfHeader = doc.table({
+    widths: ['*', '*'],
+    paddingBottom: 1 * pdf.cm
+  }).row();
+
+  const logo = fs.readFileSync(path.join(__dirname,'images/logo.jpg'));
+  const logoPdf = new pdf.Image(logo);
+  pdfHeader.cell().image(logoPdf, {
+    height: 50
+  });
+
+  const openrtkFile = fs.readFileSync(path.join(__dirname,'images/openrtk.jpg'));
+  const openrtkImg = new pdf.Image(openrtkFile);
+  pdfHeader.cell().image(openrtkImg, {
+    height: 50,
+    align: 'right',
+  });
+
+  doc.text('1. Report time', {
+    color: '#007f7b',
+    fontSize: 14,
+    lineHeight: 2.5,
+  });
+  const curTime = Date.now();
+  doc.text(`     ${moment(curTime).format('YYYY-MM-DD')}`);
+
+  doc.text('2. Dataset', {
+    color: '#007f7b',
+    fontSize: 14,
+    lineHeight: 2.5,
+  });
+  doc.text(`     ${data_name}`);
+
+  doc.text('3. RTK result', {
+    color: '#007f7b',
+    fontSize: 14,
+    lineHeight: 2.5
+  });
+
+  const rtkCsvFile = path.join(path.dirname(__dirname), 'output', 'rtk_statistic.txt');
+  const rtkCsvStr = fs.readFileSync(rtkCsvFile).toString();
+  const rtkCsvArr = rtkCsvStr.split('\n');
+  let csvHeader = [];
+  let hpos = {};
+  let vpos = {};
+  rtkCsvArr.forEach((item, i) => {
+    const itemArr = item.split(',');
+    const itemFile = itemArr.shift();
+    if (i === 0) {
+      itemArr.forEach((ele) => {
+        csvHeader.push(ele.trim());
+      });
+    } else {
+      if (itemFile.endsWith(data_name)) {
+        const pos = {};
+        itemArr.forEach((ele, i) => {
+          pos[csvHeader[i]] = ele.trim();
+        });
+        if (itemArr[0] === 'hpos') {
+          hpos = pos;
+        }
+        if (itemArr[0] === 'vpos') {
+          vpos = pos;
+        }
+      }
+    }
+  });
+
+  const headerArr = ['Type', 'CEP50', 'CEP68', 'CEP95', 'CEP99', 'Rate(%)'];
+  const table = doc.table({
+    widths: new Array(headerArr.length).fill('*'),
+    borderWidth: 1,
+  });
+
+  const header = table.header({
+    backgroundColor: '#007f7b',
+    color: '#FFFFFF',
+    lineHeight: 2,
+  });
+  
+  headerArr.forEach(item => {
+    header.cell(item, { textAlign: 'center' });
+  });
+
+  const rows = [
+    ['hpos', 'Horizonal-fixed', '50p-fix', '68p-fix', '95p-fix', '99p-fix', 'fix'],
+    ['vpos', 'Vertical-fixed','50p-fix', '68p-fix', '95p-fix', '99p-fix', 'fix'],
+    ['hpos', 'Horizonal-float', '50p-flt', '68p-flt', '95p-flt', '99p-flt', 'flt'],
+    ['vpos', 'Vertical-float', '50p-flt', '68p-flt', '95p-flt', '99p-flt', 'flt'],
+    ['hpos', 'Horizonal-all', '50p-all', '68p-all', '95p-all', '99p-all', 'all'],
+    ['vpos', 'Vertical-all', '50p-all', '68p-all', '95p-all', '99p-all', 'all'],
+  ];
+  rows.forEach(item => {
+    const row = table.row({
+      lineHeight: 2,
+    });
+    const dataSrc = item[0] === 'hpos' ? hpos : vpos;
+    item.forEach((ele, i) => {
+      if (i === 0) {
+       return;
+      }
+
+      if (i === 1) {
+        row.cell(ele, {
+          textAlign: 'center'
+        });
+        return;
+      }
+
+      if (i <= 5) {
+        row.cell(dataSrc[ele], {
+          textAlign: 'center'
+        });
+        return;
+      }
+
+      let rate = 0;
+      if (ele === 'fix') {
+        rate = dataSrc['fix rate'];
+      }
+      if (ele === 'flt') {
+        rate = (100 - dataSrc['fix rate']).toFixed(2);
+      }
+      if (ele === 'all') {
+        rate = 100;
+      }
+      row.cell(`${rate}`, {
+        textAlign: 'center'
+      });
+    });
+  });
+
+  doc.text('  \r\n', {
+    lineHeight: 1
+  }).br();
+
+  const kmlFile = fs.readFileSync(path.join(output_path,data_name+"-kml.jpg"));
+  const kmlImg = new pdf.Image(kmlFile);
+  doc.image(kmlImg, {
+    width: doc.width * 0.8,
+    align: 'center',
+  });
+  doc.text('Map showing the route of the drive test', {
+    textAlign: 'center',
+    fontSize: 14,
+  });
+
+  doc.pageBreak();
+
+  const tsFile = fs.readFileSync(path.join(output_path,data_name+"-ts.jpg"));
+  const tsImg = new pdf.Image(tsFile);
+  doc.image(tsImg, {
+    width: doc.width * 0.8,
+    align: 'center',
+  });
+  doc.text('Time series of north, east and up position errors', {
+    textAlign: 'center',
+    fontSize: 14,
+  });
+
+
+  const cdfFile = fs.readFileSync(path.join(output_path,data_name+"-cdf.jpg"));
+  const cdfImg = new pdf.Image(cdfFile);
+  doc.image(cdfImg, {
+    width: doc.width * 0.8,
+    align: 'center',
+  });
+
+  doc.text('Cumulative distribution function of RTK horizontal position errors', {
+    textAlign: 'center',
+    fontSize: 14,
+  });
+
+  doc.pageBreak();
+
+  const cepFile = fs.readFileSync(path.join(output_path,data_name+"-cep.jpg"));
+  const cepImg = new pdf.Image(cepFile);
+  doc.image(cepImg, {
+    width: doc.width * 0.8,
+    align: 'center',
+  });
+
+  doc.text('Statistic bar of RTK horizontal position errors in the driving test scenario', {
+    textAlign: 'center',
+    fontSize: 14,
+  });
+
+  doc.text('4. INS result', {
+    color: '#007f7b',
+    fontSize: 14,
+    lineHeight: 2.5
+  });
+  const insDir = path.join(output_path, 'ins');
+
+  const insHeaderArr = ['Type', 'CEP50', 'CEP68', 'CEP95', 'CEP99'];
+  const insTab = doc.table({
+    widths: new Array(insHeaderArr.length).fill('*'),
+    borderWidth: 1,
+  });
+
+  const insHeader = insTab.header({
+    backgroundColor: '#007f7b',
+    color: '#FFFFFF',
+    lineHeight: 2,
+  });
+  
+  insHeaderArr.forEach(item => {
+    insHeader.cell(item, { textAlign: 'center' });
+  });
+
+  const insCsvFile = path.join(insDir, 'result.csv');
+  const insCsvStr = fs.readFileSync(insCsvFile).toString();
+  const insCsvArr = insCsvStr.split('\n');
+
+  const insDataArr = insCsvArr[2].trim().split(',');
+  const insRows = [
+    ['Horizontal error(m)', '7', '8', '9', '6'],
+    ['Vertical error(m)', '11', '12', '13', '10'],
+    ['Roll error(deg)', '15', '16', '17', '14'],
+    ['Pitch error(deg)', '19', '20', '21', '18']
+  ];
+  insRows.forEach(item => {
+    const row = insTab.row({
+      lineHeight: 2
+    });
+    item.forEach((ele, i) => {
+      if (i === 0) {
+        row.cell(ele, {
+          textAlign: 'center',
+        });
+        return;
+      }
+
+      row.cell(insDataArr[ele], {
+        textAlign: 'center',
+      });
+    });
+  });
+
+  doc.pageBreak();
+
+  const curveFile = fs.readFileSync(path.join(insDir, 'Errorcurve.jpg'));
+  const curveImg = new pdf.Image(curveFile);
+  doc.image(curveImg, {
+    width: doc.width * 0.8,
+    align: 'center',
+  });
+  doc.text('Time series of position error, velocity error, attitude error', {
+    textAlign: 'center',
+    fontSize: 14,
+  });
+
+  const interruptFile = fs.readFileSync(path.join(insDir, 'GNSS interrupt1.jpg'));
+  const interruptImg = new pdf.Image(interruptFile);
+  doc.image(interruptImg, {
+    width: doc.width * 0.8,
+    align: 'center',
+  });
+  doc.text('Time series of horizontal error in the time period above', {
+    textAlign: 'center',
+    fontSize: 14,
+  });
+
+  doc.pageBreak();
+
+  const datasetFile = fs.readFileSync(path.join(insDir, 'Whole dataset.jpg'));
+  const datasetImg = new pdf.Image(datasetFile);
+  doc.image(datasetImg, {
+    width: doc.width * 0.8,
+    align: 'center',
+  });
+  doc.text('Time series of horizontal error of all data', {
+    textAlign: 'center',
+    fontSize: 14,
+  });
+
+
+  const trajectoryFile = fs.readFileSync(path.join(insDir, 'trajectory.jpg'));
+  const trajectoryImg = new pdf.Image(trajectoryFile);
+  doc.image(trajectoryImg, {
+    width: doc.width * 0.8,
+    align: 'center',
+  });
+  doc.text('Trajectory of the drive test', {
+    textAlign: 'center',
+    fontSize: 14,
+  });
+
+
+
+  doc.pipe(output);
+  doc.end();
+}
+
+
+function gen_full_pdf(data_path,pdf_name,data_name){
+  
   const output = fs.createWriteStream(path.join(data_path,pdf_name));
   const doc = new pdf.Document();
   // const footer = doc.footer();
@@ -236,5 +537,5 @@ function gen_pdf(data_path,pdf_name,data_name){
 }
 
 module.exports = {
-  gen_pdf
+  gen_pdf: gen_single_pdf
 }

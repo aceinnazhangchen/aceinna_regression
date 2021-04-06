@@ -14,8 +14,8 @@ async function run(){
         }
     }
 
-    await rtk_process.run(git_ver);
-    await ins_process.run(git_ver);
+    //await rtk_process.run(git_ver);
+    //await ins_process.run(git_ver);
     await analysis.run(git_ver);
 }
 

@@ -5,6 +5,5 @@
     "bin_file_folder":"bin",
     "raw_data_folder":"raw_data",
     "result_data_folder":"result_data",
-    "ref_files_folder":"novatel",
-    "ins_config_file":"content_aceinna30_turn.txt"
+    "ref_files_folder":"novatel"
 }

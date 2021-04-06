@@ -1,10 +1,6 @@
 close all;
 clear;
 clc;
-res_folder = 'output\';
-subf = strcat('..\',res_folder);
-fid1=fopen(strcat(subf,'\rtk_statistic.txt'),'w');  
-fprintf(fid1,'              dataset         rms-fix 50p-fix 68p-fix 95p-fix 99p-fix rms-flt 50p-flt 68p-flt 95p-flt 99p-flt 50p-all 68p-all 95p-all 99p-all fix rate num_all\n'); 
 
 soldif.fixrate=[];
 soldif.num_all=[];
@@ -24,10 +20,11 @@ ini_file='rtk.ini';
 file1=read_ini_file(ini_file);
 
 for id=1:length(file1)
-    
+    fid1=fopen(strcat(file1(id).outdir,'\rtk_statistic.txt'),'w');  
+    fprintf(fid1,'              dataset         rms-fix 50p-fix 68p-fix 95p-fix 99p-fix rms-flt 50p-flt 68p-flt 95p-flt 99p-flt 50p-all 68p-all 95p-all 99p-all fix rate num_all\n'); 
+    filename=strcat(file1(id).outdir,file1(id).rovfile);
     sol_ref=read_ref_file(file1(id).reffile);
-    sol_rov=read_rov_file(file1(id).rovfile);
-    filename=file1(id).rovfile;
+    sol_rov=read_rov_file(filename);
    
     [soldif, pos_err, vel_err]= csvdif_analyze(sol_rov, sol_ref);
     
