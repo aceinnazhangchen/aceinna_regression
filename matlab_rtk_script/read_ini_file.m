@@ -12,9 +12,9 @@ while(1)
  end 
   data = regexp(strTemp, ',', 'split');
   nc=nc+1;
+  file(nc).outdir=char(data(3));
   file(nc).rovfile=char(data(2));
   file(nc).reffile=char(data(1));
-  file(nc).outdir=char(data(4));
 end 
 
 end 

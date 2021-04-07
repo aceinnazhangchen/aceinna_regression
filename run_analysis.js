@@ -59,6 +59,9 @@ function gen_matlab_config(git_ver){
     var matlab_rtk_fd = fs.openSync(path.join(matlab_rtk_script_path,"rtk.ini"),"w");
     var matlab_ins_fd = fs.openSync(path.join(matlab_ins_script_path,"ins.ini"),"w");
     var rtk_map_sp = fs.readFileSync(path.join(__dirname,"config/ref_map.ini"),"utf-8").split('\r\n');
+    var ver_result_dir = path.join(setting.workspace_root,setting.result_data_folder,git_ver);
+    let line_str = "all,all,"+ver_result_dir+"\\,0\r\n";
+    fs.writeSync(matlab_rtk_fd,line_str);
     process_path.List.forEach((dir,index) => {
         var indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
@@ -82,7 +85,7 @@ function gen_matlab_config(git_ver){
             }
             if(csv_file != "" && odo_file != "" && ref_path != ""){
                 if(fs.existsSync(ref_path)){
-                    let line_str = ref_path+","+csv_file+",1,"+outdir+"\\\r\n";
+                    line_str = ref_path+","+csv_file+","+outdir+"\\,1\r\n";
                     fs.writeSync(matlab_rtk_fd,line_str);
                     line_str = outdir+"\\,"+odo_file+","+path.join(indir,"time.txt")+","+ref_path+"\r\n";
                     fs.writeSync(matlab_ins_fd,line_str);
@@ -120,7 +123,7 @@ async function run(git_ver){
     gen_matlab_config(git_ver);
     //运行matlab分析结果生成图表
     //spawnSync('matlab',['-sd',matlab_rtk_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','../output/matlab.log'],{stdio: 'inherit'});
-    spawnSync('matlab',['-sd',matlab_ins_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_post_odo_ins_test','-logfile','../output/matlab.log'],{stdio: 'inherit'});
+    //spawnSync('matlab',['-sd',matlab_ins_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_post_odo_ins_test','-logfile','../output/matlab.log'],{stdio: 'inherit'});
     //将结果图生成pdf
     //gen_pdf_files(git_ver);
 }
