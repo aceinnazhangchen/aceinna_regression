@@ -113,18 +113,76 @@ function gen_pdf_files(git_ver){
     });
 }
 
+function merge_ins_csv(git_ver){
+    const Column = 39;
+    let header1 = "";
+    let header2 = ""
+    let sum_array = [];
+    for(let i = 0;i < 2;i++){
+        let arr = []
+        for(let j = 1;j< Column-2;j++){
+            arr[j] = 0.0;
+        }
+        sum_array[i] = arr;
+    }
+    let count = 0;
+    process_path.List.forEach((dir,i) => {
+        var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
+        var csv_path = path.join(outdir,'ins','result.csv');
+        if(fs.existsSync(csv_path)){
+            //console.log(csv_path);
+            let content = fs.readFileSync(csv_path,'utf-8');
+            let lines = content.split('\r\n');
+            if(header1 == "" && header2 == ""){
+                header1 = lines[0];
+                header2 = lines[1];
+            }
+            let data_lines = lines.slice(2);
+            for(let i = 0;i < data_lines.length && i < 2;i++){
+                let data_sp = data_lines[i].split(',');
+                if(data_sp.length > Column){
+                    sum_array[i][0] = data_sp[0];
+                    for(let j = 3;j < Column;j++){
+                        sum_array[i][j-2] = sum_array[i][j-2] + parseFloat(data_sp[j]);              
+                    }
+                }
+            }
+            //console.log(sum_array);
+            count++;
+        }        
+    });
+    var csv_fd = fs.openSync(path.join(setting.workspace_root,setting.result_data_folder,git_ver,"all_ins_average.csv"),"w");
+    let header1_sp = header1.split(',');
+    header1_sp = header1_sp.slice(0,1).concat(header1_sp.slice(3,Column));
+    fs.writeSync(csv_fd,header1_sp.join(',')+'\r\n');
+    let header2_sp = header2.split(',');
+    header2_sp = header2_sp.slice(0,1).concat(header2_sp.slice(3,Column));
+    fs.writeSync(csv_fd,header2_sp.join(',')+'\r\n');
+    if(count > 0){
+        for(let i = 0;i < 2;i++){
+            for(let j = 1;j< Column-2;j++){
+                sum_array[i][j] = sum_array[i][j]/count;
+                sum_array[i][j] = sum_array[i][j].toFixed(2);
+            }
+            fs.writeSync(csv_fd,sum_array[i].join(',')+'\r\n');
+        }
+    }
+    fs.closeSync(csv_fd);
+}
+
 async function run(git_ver){
     //matlab脚本路径
     matlab_rtk_script_path = path.join(__dirname,'matlab_rtk_script');
     matlab_ins_script_path = path.join(__dirname,'matlab_ins_script');
     //将结果移动到结果文件夹
-    move_result_data(git_ver);
+    //move_result_data(git_ver);
     //生成matlab配置文件
-    gen_matlab_config(git_ver);
+    //gen_matlab_config(git_ver);
     //运行matlab分析结果生成图表
     //spawnSync('matlab',['-sd',matlab_rtk_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','../output/matlab.log'],{stdio: 'inherit'});
     //spawnSync('matlab',['-sd',matlab_ins_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_post_odo_ins_test','-logfile','../output/matlab.log'],{stdio: 'inherit'});
     //将结果图生成pdf
+    merge_ins_csv(git_ver);
     //gen_pdf_files(git_ver);
 }
 

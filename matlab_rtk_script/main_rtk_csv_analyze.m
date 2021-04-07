@@ -75,3 +75,5 @@ if nf > 1
 
     fclose(fid2);
 end
+
+quit()
