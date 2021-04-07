@@ -56,9 +56,10 @@ function find_ref_file(rtk_map_sp,file){
 }
 
 function gen_matlab_config(git_ver){
+    var raw_data_root =  path.join(setting.workspace_root,setting.raw_data_folder);
     var matlab_rtk_fd = fs.openSync(path.join(matlab_rtk_script_path,"rtk.ini"),"w");
     var matlab_ins_fd = fs.openSync(path.join(matlab_ins_script_path,"ins.ini"),"w");
-    var rtk_map_sp = fs.readFileSync(path.join(__dirname,"config/ref_map.ini"),"utf-8").split('\r\n');
+    var rtk_map_sp = fs.readFileSync(path.join(raw_data_root,"ref_map.ini"),"utf-8").split('\r\n');
     var ver_result_dir = path.join(setting.workspace_root,setting.result_data_folder,git_ver);
     let line_str = "all,all,"+ver_result_dir+"\\,0\r\n";
     fs.writeSync(matlab_rtk_fd,line_str);
@@ -175,14 +176,15 @@ async function run(git_ver){
     matlab_rtk_script_path = path.join(__dirname,'matlab_rtk_script');
     matlab_ins_script_path = path.join(__dirname,'matlab_ins_script');
     //将结果移动到结果文件夹
-    //move_result_data(git_ver);
+    move_result_data(git_ver);
     //生成matlab配置文件
-    //gen_matlab_config(git_ver);
+    gen_matlab_config(git_ver);
     //运行matlab分析结果生成图表
     //spawnSync('matlab',['-sd',matlab_rtk_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','../output/matlab.log'],{stdio: 'inherit'});
     //spawnSync('matlab',['-sd',matlab_ins_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_post_odo_ins_test','-logfile','../output/matlab.log'],{stdio: 'inherit'});
+    //合并ins的csv取平均
+    //merge_ins_csv(git_ver);
     //将结果图生成pdf
-    merge_ins_csv(git_ver);
     //gen_pdf_files(git_ver);
 }
 
