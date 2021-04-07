@@ -3,6 +3,14 @@ const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
 
+const {
+  gen_ins_table
+} = require('./ins');
+
+const {
+  gen_img
+} = require('./img');
+
 function gen_single_pdf(output_path, pdf_name, data_name){
   const output = fs.createWriteStream(path.join(output_path, pdf_name));
   const doc = new pdf.Document();
@@ -46,7 +54,7 @@ function gen_single_pdf(output_path, pdf_name, data_name){
     lineHeight: 2.5
   });
 
-  const rtkCsvFile = path.join(path.dirname(__dirname), 'output', 'rtk_statistic.txt');
+  const rtkCsvFile = path.join(output_path, 'rtk_statistic.txt');
   const rtkCsvStr = fs.readFileSync(rtkCsvFile).toString();
   const rtkCsvArr = rtkCsvStr.split('\n');
   let csvHeader = [];
@@ -143,203 +151,125 @@ function gen_single_pdf(output_path, pdf_name, data_name){
     lineHeight: 1
   }).br();
 
-  const kmlFile = fs.readFileSync(path.join(output_path,data_name+"-kml.jpg"));
-  const kmlImg = new pdf.Image(kmlFile);
-  doc.image(kmlImg, {
-    width: doc.width * 0.8,
-    align: 'center',
-  });
-  doc.text('Map showing the route of the drive test', {
-    textAlign: 'center',
-    fontSize: 14,
-  });
+  gen_img(doc, path.join(output_path, "kml.jpg"), 'Map showing the route of the drive test');
 
   doc.pageBreak();
 
-  const tsFile = fs.readFileSync(path.join(output_path,data_name+"-ts.jpg"));
-  const tsImg = new pdf.Image(tsFile);
-  doc.image(tsImg, {
-    width: doc.width * 0.8,
-    align: 'center',
-  });
-  doc.text('Time series of north, east and up position errors', {
-    textAlign: 'center',
-    fontSize: 14,
-  });
+  gen_img(doc, path.join(output_path,data_name+"-ts.jpg"), 'Time series of north, east and up position errors');
 
+  gen_img(doc, path.join(output_path,data_name+"-cdf.jpg"), 'Cumulative distribution function of RTK horizontal position errors');
 
-  const cdfFile = fs.readFileSync(path.join(output_path,data_name+"-cdf.jpg"));
-  const cdfImg = new pdf.Image(cdfFile);
-  doc.image(cdfImg, {
-    width: doc.width * 0.8,
-    align: 'center',
-  });
-
-  doc.text('Cumulative distribution function of RTK horizontal position errors', {
-    textAlign: 'center',
-    fontSize: 14,
-  });
 
   doc.pageBreak();
 
-  const cepFile = fs.readFileSync(path.join(output_path,data_name+"-cep.jpg"));
-  const cepImg = new pdf.Image(cepFile);
-  doc.image(cepImg, {
-    width: doc.width * 0.8,
-    align: 'center',
-  });
-
-  doc.text('Statistic bar of RTK horizontal position errors in the driving test scenario', {
-    textAlign: 'center',
-    fontSize: 14,
-  });
+  gen_img(doc, path.join(output_path,data_name+"-cep.jpg"), 'Statistic bar of RTK horizontal position errors in the driving test scenario');
 
   doc.text('4. INS result', {
     color: '#007f7b',
     fontSize: 14,
     lineHeight: 2.5
   });
+
+
   const insDir = path.join(output_path, 'ins');
-
-  const insHeaderArr = ['Type', 'CEP50', 'CEP68', 'CEP95', 'CEP99'];
-  const insTab = doc.table({
-    widths: new Array(insHeaderArr.length).fill('*'),
-    borderWidth: 1,
-  });
-
-  const insHeader = insTab.header({
-    backgroundColor: '#007f7b',
-    color: '#FFFFFF',
-    lineHeight: 2,
-  });
-  
-  insHeaderArr.forEach(item => {
-    insHeader.cell(item, { textAlign: 'center' });
-  });
-
   const insCsvFile = path.join(insDir, 'result.csv');
   const insCsvStr = fs.readFileSync(insCsvFile).toString();
   const insCsvArr = insCsvStr.split('\n');
 
-  const insDataArr = insCsvArr[2].trim().split(',');
-  const insRows = [
-    ['Horizontal error(m)', '7', '8', '9', '6'],
-    ['Vertical error(m)', '11', '12', '13', '10'],
-    ['Roll error(deg)', '15', '16', '17', '14'],
-    ['Pitch error(deg)', '19', '20', '21', '18']
-  ];
-  insRows.forEach(item => {
-    const row = insTab.row({
-      lineHeight: 2
-    });
-    item.forEach((ele, i) => {
-      if (i === 0) {
-        row.cell(ele, {
-          textAlign: 'center',
-        });
-        return;
-      }
+  const insDataArr = insCsvArr.slice(2);
+  const insAllData = insDataArr.shift();
+  gen_ins_table(doc, insAllData);
 
-      row.cell(insDataArr[ele], {
-        textAlign: 'center',
-      });
-    });
-  });
 
   doc.pageBreak();
 
-  const curveFile = fs.readFileSync(path.join(insDir, 'Errorcurve.jpg'));
-  const curveImg = new pdf.Image(curveFile);
-  doc.image(curveImg, {
-    width: doc.width * 0.8,
-    align: 'center',
-  });
-  doc.text('Time series of position error, velocity error, attitude error', {
-    textAlign: 'center',
-    fontSize: 14,
-  });
+  gen_img(doc, path.join(insDir, 'Errorcurve.jpg'), 'Time series of position error, velocity error, attitude error');
 
-  const interruptFile = fs.readFileSync(path.join(insDir, 'GNSS interrupt1.jpg'));
-  const interruptImg = new pdf.Image(interruptFile);
-  doc.image(interruptImg, {
-    width: doc.width * 0.8,
-    align: 'center',
-  });
-  doc.text('Time series of horizontal error in the time period above', {
-    textAlign: 'center',
-    fontSize: 14,
-  });
+  gen_img(doc, path.join(insDir, 'Whole dataset.jpg'), 'Time series of horizontal error of all data');
+
 
   doc.pageBreak();
 
-  const datasetFile = fs.readFileSync(path.join(insDir, 'Whole dataset.jpg'));
-  const datasetImg = new pdf.Image(datasetFile);
-  doc.image(datasetImg, {
-    width: doc.width * 0.8,
-    align: 'center',
-  });
-  doc.text('Time series of horizontal error of all data', {
-    textAlign: 'center',
-    fontSize: 14,
-  });
+  gen_img(doc, path.join(insDir, 'trajectory.jpg'), 'Trajectory of the drive test');
 
 
-  const trajectoryFile = fs.readFileSync(path.join(insDir, 'trajectory.jpg'));
-  const trajectoryImg = new pdf.Image(trajectoryFile);
-  doc.image(trajectoryImg, {
-    width: doc.width * 0.8,
-    align: 'center',
-  });
-  doc.text('Trajectory of the drive test', {
-    textAlign: 'center',
-    fontSize: 14,
-  });
+  insDataArr.forEach((item, i)=> {
+    if (item.length === 0) {
+      return;
+    }
 
+    const caseName = item.split(',')[0];
+    doc.text(`4.${i+1} Case ${i+1}: ${caseName}`, {
+      color: '#007f7b',
+      fontSize: 14,
+      lineHeight: 2.5
+    });
+    gen_ins_table(doc, item);
 
+    doc.pageBreak();
+    
+    const interruptFile = fs.readFileSync(path.join(insDir, `${caseName}.jpg`));
+    const interruptImg = new pdf.Image(interruptFile);
+    doc.image(interruptImg, {
+      width: doc.width * 0.8,
+      align: 'center',
+    });
+    doc.text(`Time series of horizontal error of ${caseName}`, {
+      textAlign: 'center',
+      fontSize: 14,
+    });
+  });
 
   doc.pipe(output);
   doc.end();
 }
 
 
-function gen_full_pdf(data_path,pdf_name,data_name){
+function gen_full_pdf(data_path, pdf_name){
   
   const output = fs.createWriteStream(path.join(data_path,pdf_name));
   const doc = new pdf.Document();
-  // const footer = doc.footer();
-  // footer.text('before', { textAlign: 'center' });
-  // footer.pageNumber({ textAlign: 'center', fontSize: 16 });
 
-  // const header = doc.header();
-  // header.pageNumber({ textAlign: 'center', fontSize: 16 });
-  // header.text('after', { textAlign: 'center' });
+  const pdfHeader = doc.table({
+    widths: ['*', '*'],
+    paddingBottom: 1 * pdf.cm
+  }).row();
 
   const logo = fs.readFileSync(path.join(__dirname,'images/logo.jpg'));
   const logoPdf = new pdf.Image(logo);
+  pdfHeader.cell().image(logoPdf, {
+    height: 50
+  });
 
-  doc.image(logoPdf, {
-    width: 64,
+  const openrtkFile = fs.readFileSync(path.join(__dirname,'images/openrtk.jpg'));
+  const openrtkImg = new pdf.Image(openrtkFile);
+  pdfHeader.cell().image(openrtkImg, {
+    height: 50,
+    align: 'right',
   });
 
   doc.text('OpenRTK330 Regression Report', {
     textAlign: 'center',
-    lineHeight: 30,
+    lineHeight: 10,
+    fontSize: 24,
     color: '#007f7b',
   });
 
-  doc.text('2021-03-25', {
+  const curTime = Date.now();
+  doc.text(`${moment(curTime).format('YYYY-MM-DD')}`, {
     textAlign: 'center',
     lineHeight: 20,
     color: '#007f7b',
   });
-  doc.text('© Aceinna Inc, 2021', {
+  doc.text(`© Aceinna Inc, ${moment(curTime).format('YYYY')}`, {
     textAlign: 'center',
     color: '#007f7b',
   });
 
   doc.pageBreak();
-  doc.text('1.Performance requirements', {
+  doc.text('1. Performance requirements', {
     color: '#007f7b',
+    fontSize: 16,
     destination: 'goTo-tag-1',
   });
   doc.text('Table 1. INS performance requirement from Inceptio', {
@@ -353,10 +283,10 @@ function gen_full_pdf(data_path,pdf_name,data_name){
   const header = table.header({
     backgroundColor: '#007f7b',
     color: '#FFFFFF',
-    lineHeight: 2,
+    lineHeight: 1.8,
   });
-  header.cell('Scenario', { textAlign: 'center' });
-  header.cell('Required Performance', { textAlign: 'center' });
+  header.cell('Scenario', { textAlign: 'center', fontSize: 15, });
+  header.cell('Required Performance', { textAlign: 'center', fontSize: 15 });
 
   const row1 = table.row();
   row1.cell('GPS and RTK ready without blockage', { textAlign: 'center' });
@@ -480,49 +410,49 @@ function gen_full_pdf(data_path,pdf_name,data_name){
 
   doc.pageBreak();
 
-  const tsFile = fs.readFileSync(path.join(data_path,data_name+"-ts.jpg"));
-  const tsImg = new pdf.Image(tsFile);
-  doc.image(tsImg, {
-    width: doc.width * 0.8,
-    align: 'center',
-  });
+  // const tsFile = fs.readFileSync(path.join(data_path,data_name+"-ts.jpg"));
+  // const tsImg = new pdf.Image(tsFile);
+  // doc.image(tsImg, {
+  //   width: doc.width * 0.8,
+  //   align: 'center',
+  // });
 
-  doc.text('Figure 4 Time series of north, east and up position errors in case 1.', {
-    textAlign: 'center',
-    fontSize: 14,
-  });
+  // doc.text('Figure 4 Time series of north, east and up position errors in case 1.', {
+  //   textAlign: 'center',
+  //   fontSize: 14,
+  // });
 
-  doc.text('', {
-    lineHeight: 1.5,
-  });
+  // doc.text('', {
+  //   lineHeight: 1.5,
+  // });
 
-  const cdfFile = fs.readFileSync(path.join(data_path,data_name+"-cdf.jpg"));
-  const cdfImg = new pdf.Image(cdfFile);
-  doc.image(cdfImg, {
-    width: doc.width * 0.8,
-    align: 'center',
-  });
+  // const cdfFile = fs.readFileSync(path.join(data_path,data_name+"-cdf.jpg"));
+  // const cdfImg = new pdf.Image(cdfFile);
+  // doc.image(cdfImg, {
+  //   width: doc.width * 0.8,
+  //   align: 'center',
+  // });
 
-  doc.text('Figure 5 Cumulative distribution function of RTK horizontal position errors in case 1.', {
-    textAlign: 'center',
-    fontSize: 14,
-  });
+  // doc.text('Figure 5 Cumulative distribution function of RTK horizontal position errors in case 1.', {
+  //   textAlign: 'center',
+  //   fontSize: 14,
+  // });
 
-  doc.pageBreak();
+  // doc.pageBreak();
 
-  const cepFile = fs.readFileSync(path.join(data_path,data_name+"-cep.jpg"));
-  const cepImg = new pdf.Image(cepFile);
-  doc.image(cepImg, {
-    width: doc.width * 0.8,
-    align: 'center',
-  });
+  // const cepFile = fs.readFileSync(path.join(data_path,data_name+"-cep.jpg"));
+  // const cepImg = new pdf.Image(cepFile);
+  // doc.image(cepImg, {
+  //   width: doc.width * 0.8,
+  //   align: 'center',
+  // });
 
-  doc.text('Figure 6 statistic bar of RTK horizontal position errors in the driving test scenario.', {
-    textAlign: 'center',
-    fontSize: 14,
-  });
+  // doc.text('Figure 6 statistic bar of RTK horizontal position errors in the driving test scenario.', {
+  //   textAlign: 'center',
+  //   fontSize: 14,
+  // });
 
-  doc.pageBreak();
+  // doc.pageBreak();
 
   doc.text('4.1.2 INS results', {
     color: '#007f7b',
@@ -537,5 +467,6 @@ function gen_full_pdf(data_path,pdf_name,data_name){
 }
 
 module.exports = {
-  gen_pdf: gen_single_pdf
+  gen_single_pdf,
+  gen_full_pdf
 }
