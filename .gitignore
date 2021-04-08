@@ -1,6 +1,5 @@
 *.log
-data.ini
 node_modules/
 output/
-matlab_script/rtk.ini
-rtk.ini
+/matlab_rtk_script/rtk.ini
+/matlab_ins_script/ins.ini

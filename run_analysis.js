@@ -35,7 +35,7 @@ function move_result_data(git_ver){
                         fs.renameSync(path.join(indir,file),path.join(outdir,file));//移动文件
                         //fs.copyFileSync(path.join(indir,file),path.join(outdir,file));//拷贝文件
                     }
-                }else if(".jpg" == ext){
+                }else if(".jpg" == ext || ".xlsx" == ext){
                     fs.copyFileSync(path.join(indir,file),path.join(outdir,file));//拷贝文件
                 }
             });
@@ -94,7 +94,7 @@ function gen_pdf_files(git_ver){
                 let ext = path.extname(file);                
                 if(Csv_Ext == ext && file.startsWith(Rtcm_Rover_Header)){
                     let basename = path.basename(file,Csv_Ext);
-                    pdf.gen_pdf(outdir,basename+'.pdf',file);
+                    pdf.gen_single_pdf(outdir,basename+'.pdf',file);
                 }
             });
         }
@@ -165,7 +165,7 @@ async function run(git_ver){
     matlab_rtk_script_path = path.join(__dirname,'matlab_rtk_script');
     matlab_ins_script_path = path.join(__dirname,'matlab_ins_script');
     //将结果移动到结果文件夹
-    //move_result_data(git_ver);
+    move_result_data(git_ver);
     //生成matlab配置文件
     gen_matlab_config(git_ver);
     //运行matlab分析结果生成图表
