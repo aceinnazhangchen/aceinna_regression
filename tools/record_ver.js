@@ -1,4 +1,4 @@
-const ver_json = require("./load/ver_json.js");
+const ver_json = require("../load/ver_json.js");
 
 function record_git_ver(){
     ver_json.load_version_json();

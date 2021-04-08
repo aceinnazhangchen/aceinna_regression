@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require("path");
-const setting = require('./config/process_setting.json');
-const map_ini = require("./load/map_ini.js");
+const setting = require('../config/process_setting.json');
+const map_ini = require("../load/map_ini.js");
 
 function mkdirsSync(dirname) {
     if (fs.existsSync(dirname)) {
