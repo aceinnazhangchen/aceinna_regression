@@ -85,8 +85,9 @@ function gen_matlab_config(git_ver){
 }
 
 function gen_pdf_files(git_ver){
+    const gitRoot = path.join(setting.workspace_root,setting.result_data_folder,git_ver);
     load_ini.RawList.forEach((dir,i) => {
-        var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
+        var outdir = path.join(gitRoot,dir);
         if(fs.existsSync(outdir)){
             const files = fs.readdirSync(outdir);
             files.forEach((file,j) => {
@@ -98,6 +99,8 @@ function gen_pdf_files(git_ver){
             });
         }
     });
+
+    pdf.gen_full_pdf(gitRoot, 'OpenRTK_regression.pdf');
 }
 
 function merge_ins_csv(git_ver){
@@ -169,9 +172,9 @@ async function run(git_ver){
     spawnSync('matlab',['-sd',matlab_rtk_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','../output/matlab.log'],{stdio: 'inherit'});
     spawnSync('matlab',['-sd',matlab_ins_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_post_odo_ins_test','-logfile','../output/matlab.log'],{stdio: 'inherit'});
     //合并ins的csv取平均
-    //merge_ins_csv(git_ver);
+    merge_ins_csv(git_ver);
     //将结果图生成pdf
-    //gen_pdf_files(git_ver);
+    gen_pdf_files(git_ver);
 }
 
 module.exports = {
