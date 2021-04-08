@@ -1,7 +1,7 @@
 {
     "workspace_root":"E:\\WorkSpace\\aceinna_regression_workspace\\",
-    "src_ins_exe":"E:\\WorkSpace\\aceinna_regression_workspace\\_ins_exe\\INS.exe",
-    "src_rtk_exe":"E:\\WorkSpace\\aceinna_regression_workspace\\_ins_exe\\msvc.exe",
+    "src_ins_exe":"E:\\WorkSpace\\aceinna_regression_workspace\\bin\\INS.exe",
+    "src_rtk_exe":"E:\\WorkSpace\\aceinna_regression_workspace\\bin\\msvc.exe",
     "bin_file_folder":"bin",
     "raw_data_folder":"raw_data",
     "result_data_folder":"result_data",
