@@ -6,8 +6,7 @@
   "dependencies": {
     "moment": "^2.29.1",
     "node-xlsx": "^0.16.1",
-    "pdfjs": "^2.4.2",
-    "wkhtmltopdf": "^0.3.4"
+    "pdfjs": "^2.4.2"
   },
   "devDependencies": {},
   "scripts": {
