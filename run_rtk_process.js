@@ -4,7 +4,7 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const spawnSync = require('child_process').spawnSync;
 const setting = require('./config/process_setting.json');
-const load_ini = require("./load_ini.js");
+const map_ini = require("./load/map_ini.js");
 
 const Rtcm_Rover_Header = "rtcm_rover_";
 const Rtcm_Base_Header = "rtcm_base_";
@@ -46,7 +46,7 @@ function data2doy(year,month,day){
 
 function gen_data_ini(){
     var data_fd=fs.openSync(path.join(bin_file_dir,"data.ini"),"w");
-    load_ini.RawList.forEach((indir,i) => {
+    map_ini.RawList.forEach((indir,i) => {
         indir = path.join(setting.workspace_root,setting.raw_data_folder,indir);
         if(fs.existsSync(indir)){
             const files = fs.readdirSync(indir);

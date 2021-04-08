@@ -3,7 +3,7 @@ const path = require("path");
 const spawnSync = require('child_process').spawnSync;
 const pdf = require('./pdf/pdf.js');
 const setting = require('./config/process_setting.json');
-const load_ini = require("./load_ini.js");
+const map_ini = require("./load/map_ini.js");
 
 const Csv_Ext = ".csv";
 const Rtcm_Rover_Header = "rtcm_rover_";
@@ -22,7 +22,7 @@ function mkdirsSync(dirname) {
 }
 
 function move_result_data(git_ver){
-    load_ini.RawList.forEach((dir,index) => {
+    map_ini.RawList.forEach((dir,index) => {
         var indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
         if(fs.existsSync(indir)){
@@ -49,14 +49,14 @@ function gen_matlab_config(git_ver){
     var ver_result_dir = path.join(setting.workspace_root,setting.result_data_folder,git_ver);
     let line_str = "all,all,"+ver_result_dir+"\\,0\r\n";
     fs.writeSync(matlab_rtk_fd,line_str);
-    load_ini.RawList.forEach((dir,index) => {
+    map_ini.RawList.forEach((dir,index) => {
         var indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
         if(fs.existsSync(outdir)){
             const files = fs.readdirSync(outdir);
             let csv_file = "";
             let odo_file = "";
-            let ref_file = load_ini.find_ref_file(dir);
+            let ref_file = map_ini.find_ref_file(dir);
             let ref_path = path.join(setting.workspace_root,setting.raw_data_folder,setting.ref_files_folder,ref_file);
             for(let i in files){
                 let file = files[i];
@@ -86,7 +86,7 @@ function gen_matlab_config(git_ver){
 
 function gen_pdf_files(git_ver){
     const gitRoot = path.join(setting.workspace_root,setting.result_data_folder,git_ver);
-    load_ini.RawList.forEach((dir,i) => {
+    map_ini.RawList.forEach((dir,i) => {
         var outdir = path.join(gitRoot,dir);
         if(fs.existsSync(outdir)){
             const files = fs.readdirSync(outdir);
@@ -116,7 +116,7 @@ function merge_ins_csv(git_ver){
         sum_array[i] = arr;
     }
     let count = 0;
-    load_ini.RawList.forEach((dir,i) => {
+    map_ini.RawList.forEach((dir,i) => {
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
         var csv_path = path.join(outdir,'ins','result.csv');
         if(fs.existsSync(csv_path)){

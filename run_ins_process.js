@@ -4,7 +4,7 @@ const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 const spawnSync = require('child_process').spawnSync;
 const setting = require('./config/process_setting.json');
-const load_ini = require("./load_ini.js");
+const map_ini = require("./load/map_ini.js");
 const ins_config_template = require('./config/ins_config_template.json');
 
 const Json_Ext = ".json";
@@ -166,7 +166,7 @@ function find_process_file(dir,file,csv_file){
 }
 
 function gen_ins_data_config(){
-    load_ini.RawList.forEach((dir,i) => {
+    map_ini.RawList.forEach((dir,i) => {
         let indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
         if(fs.existsSync(indir)){
             const files = fs.readdirSync(indir);
@@ -207,7 +207,7 @@ function gen_ins_data_config(){
 }
 
 function ins_process(){
-    load_ini.RawList.forEach((dir,i) => {
+    map_ini.RawList.forEach((dir,i) => {
         let indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
         let ins_config_Path = path.join(indir,Ins_config);
         if(fs.existsSync(ins_config_Path)){
