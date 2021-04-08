@@ -3,7 +3,7 @@ const path = require("path");
 const spawnSync = require('child_process').spawnSync;
 const pdf = require('./pdf/pdf.js');
 const setting = require('./config/process_setting.json');
-const process_path = require('./config/process_path.json');
+const load_ini = require("./load_ini.js");
 
 const Csv_Ext = ".csv";
 const Rtcm_Rover_Header = "rtcm_rover_";
@@ -22,7 +22,7 @@ function mkdirsSync(dirname) {
 }
 
 function move_result_data(git_ver){
-    process_path.List.forEach((dir,index) => {
+    load_ini.RawList.forEach((dir,index) => {
         var indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
         if(fs.existsSync(indir)){
@@ -43,44 +43,30 @@ function move_result_data(git_ver){
     });
 }
 
-function find_ref_file(rtk_map_sp,file){
-    let ref_path = "";  
-    for(let j = 0;j < rtk_map_sp.length; j++){
-        if(rtk_map_sp[j].startsWith(file)){
-            let ref_file = rtk_map_sp[j].split(",")[1]; 
-            ref_path = path.join(setting.workspace_root,setting.raw_data_folder,setting.ref_files_folder,ref_file);
-            break;
-        }
-    }
-    return ref_path;
-}
-
 function gen_matlab_config(git_ver){
-    var raw_data_root =  path.join(setting.workspace_root,setting.raw_data_folder);
     var matlab_rtk_fd = fs.openSync(path.join(matlab_rtk_script_path,"rtk.ini"),"w");
     var matlab_ins_fd = fs.openSync(path.join(matlab_ins_script_path,"ins.ini"),"w");
-    var rtk_map_sp = fs.readFileSync(path.join(raw_data_root,"ref_map.ini"),"utf-8").split('\r\n');
     var ver_result_dir = path.join(setting.workspace_root,setting.result_data_folder,git_ver);
     let line_str = "all,all,"+ver_result_dir+"\\,0\r\n";
     fs.writeSync(matlab_rtk_fd,line_str);
-    process_path.List.forEach((dir,index) => {
+    load_ini.RawList.forEach((dir,index) => {
         var indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
         if(fs.existsSync(outdir)){
             const files = fs.readdirSync(outdir);
             let csv_file = "";
             let odo_file = "";
-            let ref_path = "";
+            let ref_file = load_ini.find_ref_file(dir);
+            let ref_path = path.join(setting.workspace_root,setting.raw_data_folder,setting.ref_files_folder,ref_file);
             for(let i in files){
                 let file = files[i];
                 let ext = path.extname(file);
                 if(Csv_Ext == ext){
                     csv_file = file;
-                    ref_path = find_ref_file(rtk_map_sp,file);
                 }else if(file.endsWith("_result_odo.txt")){
                     odo_file = file;
                 }
-                if(csv_file != "" && odo_file != "" && ref_path != ""){
+                if(csv_file != "" && odo_file != ""){
                     break;
                 }
             }
@@ -99,7 +85,7 @@ function gen_matlab_config(git_ver){
 }
 
 function gen_pdf_files(git_ver){
-    process_path.List.forEach((dir,i) => {
+    load_ini.RawList.forEach((dir,i) => {
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
         if(fs.existsSync(outdir)){
             const files = fs.readdirSync(outdir);
@@ -127,7 +113,7 @@ function merge_ins_csv(git_ver){
         sum_array[i] = arr;
     }
     let count = 0;
-    process_path.List.forEach((dir,i) => {
+    load_ini.RawList.forEach((dir,i) => {
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
         var csv_path = path.join(outdir,'ins','result.csv');
         if(fs.existsSync(csv_path)){
@@ -176,12 +162,12 @@ async function run(git_ver){
     matlab_rtk_script_path = path.join(__dirname,'matlab_rtk_script');
     matlab_ins_script_path = path.join(__dirname,'matlab_ins_script');
     //将结果移动到结果文件夹
-    move_result_data(git_ver);
+    //move_result_data(git_ver);
     //生成matlab配置文件
     gen_matlab_config(git_ver);
     //运行matlab分析结果生成图表
-    //spawnSync('matlab',['-sd',matlab_rtk_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','../output/matlab.log'],{stdio: 'inherit'});
-    //spawnSync('matlab',['-sd',matlab_ins_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_post_odo_ins_test','-logfile','../output/matlab.log'],{stdio: 'inherit'});
+    spawnSync('matlab',['-sd',matlab_rtk_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','../output/matlab.log'],{stdio: 'inherit'});
+    spawnSync('matlab',['-sd',matlab_ins_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_post_odo_ins_test','-logfile','../output/matlab.log'],{stdio: 'inherit'});
     //合并ins的csv取平均
     //merge_ins_csv(git_ver);
     //将结果图生成pdf
