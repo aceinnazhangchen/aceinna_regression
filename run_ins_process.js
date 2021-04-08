@@ -221,14 +221,16 @@ async function run(git_ver){
     const bin_file_dir = path.join(setting.workspace_root,setting.bin_file_folder,"INS");
     mkdirsSync(bin_file_dir);
     bin_file = path.join(bin_file_dir,git_ver_bin);
-    //拷贝文件带有git版本号
-    var cmd = `copy /Y ${setting.src_ins_exe} ${bin_file}`;
-    console.log(cmd);
-    await exec(cmd);
-    //遍历生成配置文件
-    gen_ins_data_config();
-    //遍历并执行ins程序
-    ins_process();
+    if(fs.existsSync(setting.src_ins_exe)){
+        //拷贝文件带有git版本号
+        var cmd = `copy /Y ${setting.src_ins_exe} ${bin_file}`;
+        console.log(cmd);
+        await exec(cmd);
+        //遍历生成配置文件
+        gen_ins_data_config();
+        //遍历并执行ins程序
+        ins_process();
+    }
 }
 
 module.exports ={

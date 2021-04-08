@@ -80,16 +80,18 @@ async function run(git_ver){
     //rtk执行文件目标目录
     bin_file_dir = path.join(setting.workspace_root,setting.bin_file_folder,"RTK");
     mkdirsSync(bin_file_dir);
-    //rtk执行文件路径
-    bin_file = path.join(bin_file_dir,git_ver_bin);
-    //拷贝文件带有git版本号
-    var cmd = `copy /Y "${setting.src_rtk_exe}" "${bin_file}"`;
-    console.log(cmd);
-    await exec(cmd);
-    //遍历生成配置文件
-    gen_data_ini();
-    //运行rtk后处理
-    spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
+    if(fs.existsSync(setting.src_rtk_exe)){
+        //rtk执行文件路径
+        bin_file = path.join(bin_file_dir,git_ver_bin);
+        //拷贝文件带有git版本号
+        var cmd = `copy /Y "${setting.src_rtk_exe}" "${bin_file}"`;
+        console.log(cmd);
+        await exec(cmd);
+        //遍历生成配置文件
+        gen_data_ini();
+        //运行rtk后处理
+        spawnSync(bin_file,[" > out.log"],{stdio: 'inherit',cwd:bin_file_dir});
+    }
 }
 
 module.exports ={
