@@ -1,7 +1,27 @@
 {
-    "workspace_root":"E:\\WorkSpace\\aceinna_regression_workspace\\",
-    "src_ins_exe":"E:\\WorkSpace\\aceinna_regression_workspace\\bin\\INS.exe",
-    "src_rtk_exe":"E:\\WorkSpace\\aceinna_regression_workspace\\bin\\msvc.exe",
+    "setting":[
+        {
+            "workspace_root":"E:\\WorkSpace\\aceinna_regression_workspace\\",
+            "src_ins_exe":"E:\\WorkSpace\\aceinna_regression_workspace\\bin\\INS.exe",
+            "src_rtk_exe":"E:\\WorkSpace\\aceinna_regression_workspace\\bin\\msvc.exe",
+            "bin_file_folder":"bin",
+            "raw_data_folder":"raw_data",
+            "result_data_folder":"result_data",
+            "ref_files_folder":"novatel"
+        },
+        {
+            "workspace_root":"C:\\workspace\\regression\\",
+            "src_ins_exe":"C:\\workspace\\regression\\bin\\INS.exe",
+            "src_rtk_exe":"C:\\workspace\\regression\\bin\\msvc.exe",
+            "bin_file_folder":"bin",
+            "raw_data_folder":"raw_data",
+            "result_data_folder":"result_data",
+            "ref_files_folder":"novatel"
+        }
+    ],
+    "workspace_root":"C:\\workspace\\regression\\",
+    "src_ins_exe":"C:\\workspace\\regression\\bin\\INS.exe",
+    "src_rtk_exe":"C:\\workspace\\regression\\bin\\msvc.exe",
     "bin_file_folder":"bin",
     "raw_data_folder":"raw_data",
     "result_data_folder":"result_data",

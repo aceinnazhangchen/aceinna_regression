@@ -97,5 +97,3 @@ async function run(git_ver){
 module.exports ={
     run
 }
-
-//run();
