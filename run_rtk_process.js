@@ -24,7 +24,7 @@ function mkdirsSync(dirname) {
     }
 }
 
-function data2doy(year,month,day){
+function date2doy(year,month,day){
     const month_leapyear=[31,29,31,30,31,30,31,31,30,31,30,31];
     const month_notleap= [31,28,31,30,31,30,31,31,30,31,30,31];
     var doy=0;
@@ -63,7 +63,7 @@ function gen_data_ini(){
             if(rover_file != "" && base_file != ""){
                 let time_sp = rover_file.split("_");
                 let year = time_sp[2],month = time_sp[3],day = time_sp[4];
-                let doy = data2doy(parseInt(year),parseInt(month),parseInt(day));
+                let doy = date2doy(parseInt(year),parseInt(month),parseInt(day));
                 let line_str = util.format("4,%s\r\n",indir);
                 fs.writeSync(data_fd,line_str);
                 line_str =  util.format("1,%s,%s,0,0,0,%s,%s,0\r\n",rover_file,base_file,year,doy);
