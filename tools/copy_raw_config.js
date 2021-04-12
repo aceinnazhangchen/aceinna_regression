@@ -30,6 +30,10 @@ function copy_config_files(){
         if(fs.existsSync(path.join(from_dir,file))){
             fs.copyFileSync(path.join(from_dir,file),path.join(to_dir,file));//拷贝文件 
         }
+        file = 'openrtk.xlsx';
+        if(fs.existsSync(path.join(from_dir,file))){
+            fs.copyFileSync(path.join(from_dir,file),path.join(to_dir,file));//拷贝文件 
+        }
     });
 }
 

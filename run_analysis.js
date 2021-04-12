@@ -110,8 +110,13 @@ function merge_ins_csv(git_ver){
     let sum_array = [];
     for(let i = 0;i < 2;i++){
         let arr = []
-        for(let j = 1;j< Column-2;j++){
-            arr[j] = 0.0;
+        for(let j = 1;j< Column;j++){
+            if(j <= 3){
+                arr[j] = "";
+            }
+            else{
+                arr[j] = 0.0;
+            }
         }
         sum_array[i] = arr;
     }
@@ -133,7 +138,7 @@ function merge_ins_csv(git_ver){
                 if(data_sp.length > Column){
                     sum_array[i][0] = data_sp[0];
                     for(let j = 3;j < Column;j++){
-                        sum_array[i][j-2] = sum_array[i][j-2] + parseFloat(data_sp[j]);              
+                        sum_array[i][j] = sum_array[i][j] + parseFloat(data_sp[j]);              
                     }
                 }
             }
@@ -142,15 +147,15 @@ function merge_ins_csv(git_ver){
         }        
     });
     var csv_fd = fs.openSync(path.join(setting.workspace_root,setting.result_data_folder,git_ver,"all_ins_average.csv"),"w");
-    let header1_sp = header1.split(',');
-    header1_sp = header1_sp.slice(0,1).concat(header1_sp.slice(3,Column));
-    fs.writeSync(csv_fd,header1_sp.join(',')+'\r\n');
-    let header2_sp = header2.split(',');
-    header2_sp = header2_sp.slice(0,1).concat(header2_sp.slice(3,Column));
-    fs.writeSync(csv_fd,header2_sp.join(',')+'\r\n');
+    //let header1_sp = header1.split(',');
+    //header1_sp = header1_sp.slice(0,1).concat(header1_sp.slice(3,Column));
+    fs.writeSync(csv_fd,header1+'\r\n');
+    //let header2_sp = header2.split(',');
+    //header2_sp = header2_sp.slice(0,1).concat(header2_sp.slice(3,Column));
+    fs.writeSync(csv_fd,header2+'\r\n');
     if(count > 0){
         for(let i = 0;i < 2;i++){
-            for(let j = 1;j< Column-2;j++){
+            for(let j = 1;j< Column;j++){
                 sum_array[i][j] = sum_array[i][j]/count;
                 sum_array[i][j] = sum_array[i][j].toFixed(2);
             }
