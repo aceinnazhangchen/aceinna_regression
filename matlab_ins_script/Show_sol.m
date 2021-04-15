@@ -16,7 +16,7 @@ else
     t_dt = mean(diff(sol(:,1)));
 end
 
-%���ο�ͶӰ��imuʱ���
+%将参考投影到imu时间点
 true_c = interp1(ref(:,1),ref,sol_c(:,1),'linear');
 if (type >= 3)
     true_c(:,10)=interp1_Azimuth(ref(:,1),ref(:,10)-2*pi,sol_c(:,1));
