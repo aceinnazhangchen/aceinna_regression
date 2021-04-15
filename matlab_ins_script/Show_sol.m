@@ -118,17 +118,17 @@ saveas(fh,[filefolder 'Errorcurve.jpg']);
 %分场景统计误差，保存csv文件，绘制水平误差图片
 fp = fopen([filefolder 'result.csv'],'wt');
 %打印头
-head1 = ["scene","invalid","length","horizontal error(m)","vertical error(m)","horizontal v error(m)","vertical v error(m)","roll error(deg)","pitch error(deg)","heading error(deg)","longtitudinal error(m)","cross error(m)"];
+head1 = ["scene","scerio","invalid","length","horizontal error(m)","vertical error(m)","horizontal v error(m)","vertical v error(m)","roll error(deg)","pitch error(deg)","heading error(deg)","longtitudinal error(m)","cross error(m)"];
 head2 = ["cep50","cep68","cep95","cep99"];
-fprintf(fp,'%s,%s,%s,',head1(1),head1(2),head1(3));
-for i = 4:12
+fprintf(fp,'%s,%s,%s,%s,',head1(1),head1(2),head1(3),head1(4));
+for i = 5:13
     fprintf(fp,'%s,,,,',head1(i));
 end
 fprintf(fp,'Lateral error(%%),');
 
 fprintf(fp,'Longitudinal error(%%)');
 fprintf(fp,'\n');
-fprintf(fp,',,,');
+fprintf(fp,',,,,');
 for i = 1:9
     for j =1:4
         fprintf(fp,'%s,',head2(j));
@@ -138,16 +138,20 @@ fprintf(fp,',');
 fprintf(fp,'\n');
 %分段打印
 if N_nogps~=0
+    scenrio = 0;
     for i=1:N_nogps+2
         if (i == N_nogps+1)
             dsc_nogs(i) = "Without blockage";
              n_temp=find( sol_c(:,23)>= 0 & sol_c(:,23)<= 1 );
+             scenrio = 2;
              len = 1;
         elseif(i == N_nogps+2)
              dsc_nogs(i) = "With blockage 3sec";
               n_temp=find( sol_c(:,23)> 1.0  & sol_c(:,23)<= 3.0 );
+              scenrio = 3;
               len =1;
         else
+            scenrio = t_nogps(i,3);
         n_temp=find( true_c(:,1)>t_nogps(i,1) & true_c(:,1)<t_nogps(i,2) );
         lenth_cur =  sqrt(true_c(n_temp,5).^2 +true_c(n_temp,6).^2);
         len = mean(lenth_cur) * (t_nogps(i,2)-t_nogps(i,1));
@@ -187,7 +191,6 @@ if N_nogps~=0
                 xlabel(['Time -' int2str(t_shift) ' (sec)']);
             end
             legend(dsc_nogs(i));
-            
             saveas(fh,[filefolder char(dsc_nogs(i)) '.jpg']);
             error_horizontal=sort(error_horizontal);
             error_vertical=sort(error_vertical);
@@ -208,51 +211,51 @@ if N_nogps~=0
                 ,error_lonc(round(0.50*num)), error_lonc(round(0.68*num)),error_lonc(round(0.95*num)),error_lonc(round(0.99*num))...
                 ,error_crossc(round(0.50*num)), error_crossc(round(0.68*num)),error_crossc(round(0.95*num)),error_crossc(round(0.99*num))
                 ];
+    if(scenrio == 0 || scenrio == 1)
+        fh=  figure;
+        cdfplot(error_horizontal);
+        hold on
+        set(gca,'FontWeight','bold','FontSize',12);
+        xlim(gca, [0 2]);
+        xlabel(gca, 'Horizontal error (m)')
+        ylabel(gca, 'CDF')
+        title('OpenRTK330LI CDF');
+        box on;
+        saveas(fh,[filefolder char(dsc_nogs(i)) 'cdf.jpg']);
 
-            fh=  figure;
-    cdfplot(error_horizontal);
-    hold on
-    set(gca,'FontWeight','bold','FontSize',12);
-    xlim(gca, [0 2]);
-    xlabel(gca, 'Horizontal error (m)')
-    ylabel(gca, 'CDF')
-    title('OpenRTK330LI CDF');
-    box on;
-                saveas(fh,[filefolder char(dsc_nogs(i)) 'cdf.jpg']);
-
-      id =i;
-     fh=figure;
-    hold on
-    set(gca,'xticklabel',{'','CEP50','CEP68','CEP95','CEP99',''});
-    ylim(gca, [0 2]);
-    set(gca,'FontWeight','bold','FontSize',12);
-    ylabel(gca, 'Horizontal error (m)')
-    bc=bar(rtk_err(id,1:4)');
-    set(bc,'facecolor',[0 0.5 0]);
- %   title('OpenRTK330LI CDF');
-%     legend('st teseoV-all drives');
-    grid on;
+        id =i;
+        fh=figure;
+        hold on
+        set(gca,'xticklabel',{'','CEP50','CEP68','CEP95','CEP99',''});
+        ylim(gca, [0 2]);
+        set(gca,'FontWeight','bold','FontSize',12);
+        ylabel(gca, 'Horizontal error (m)')
+        bc=bar(rtk_err(id,1:4)');
+        set(bc,'facecolor',[0 0.5 0]);
+        %   title('OpenRTK330LI CDF');
+        %   legend('st teseoV-all drives');
+        grid on;
    
-    for k=1:4
-    if (rtk_err(id,k)<5)
-    text(k,rtk_err(id,k),num2str(rtk_err(id,k),3),...
-    'FontWeight','bold','HorizontalAlignment','center',...
-     'VerticalAlignment','bottom')
-    else
-    text(k,5,num2str(rtk_err(id,k),3),...
-    'FontWeight','bold','HorizontalAlignment','center',...
-    'VerticalAlignment','bottom')
-    end
-    end 
+        for k=1:4
+            if (rtk_err(id,k)<5)
+            text(k,rtk_err(id,k),num2str(rtk_err(id,k),3),...
+            'FontWeight','bold','HorizontalAlignment','center',...
+             'VerticalAlignment','bottom')
+            else
+            text(k,5,num2str(rtk_err(id,k),3),...
+            'FontWeight','bold','HorizontalAlignment','center',...
+            'VerticalAlignment','bottom')
+            end
+        end 
     
-                    saveas(fh,[filefolder char(dsc_nogs(i)) 'cep.jpg']);
-
+        saveas(fh,[filefolder char(dsc_nogs(i)) 'cep.jpg']);
+    end
             fprintf(fp,'%s,',dsc_nogs(i));
             clear t_disp_e;
             t_disp_e = t_disp(n_temp);
             count = (num/((1/t_dt)*(t_disp_e(end)-t_disp_e(1)) + 1))*100;
             clear t_disp_e;
-            
+            fprintf(fp,'%d,',scenrio);
             fprintf(fp,'%10.4f,',count);
             fprintf(fp,'%10.4f,',len);
             for j =1:37

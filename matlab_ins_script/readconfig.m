@@ -46,12 +46,12 @@ while ~feof(fid_conf)
     if(contains(line,':'))
         clear start_n end_n mid_n;
         cout = cout + 1;
-        start_n = strfind(line,':');
-        end_n = strfind(line,';');
-        mid_n = strfind(line,',');
-        cfg_info.dsc_nogs(cout) = string(line(2:start_n(1)-2));
-        cfg_info.t_nogps(cout,1) = str2double(line(start_n(1)+1:mid_n(1)-1));
-        cfg_info.t_nogps(cout,2) = str2double(line(mid_n(1)+1:end_n(1)-1));
+        kv_sp = strsplit(line(1:strlength(line)-1),':');
+        cfg_info.dsc_nogs(cout) = string(kv_sp(1));
+        value_sp = strsplit(string(kv_sp(2)),',');
+        cfg_info.t_nogps(cout,1) = str2double(value_sp(1));
+        cfg_info.t_nogps(cout,2) = str2double(value_sp(2));
+        cfg_info.t_nogps(cout,3) = str2double(value_sp(3));
         continue;
     end
 end
