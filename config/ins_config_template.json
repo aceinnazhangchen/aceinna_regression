@@ -55,7 +55,7 @@
         0
     ],
     "isUseGNSSVel": 0,
-    "isUseOdo": 1,
+    "isUseOdo": 0,
     "odoScale": 1,
     "isUseZUPT": 1,
     "isUseZUPTLOCK": 1,

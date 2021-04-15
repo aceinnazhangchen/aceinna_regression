@@ -20,7 +20,7 @@ function [soldif, pos_err, vel_err] = csvdif_analyze(sol_rov, sol_ref)
     hor_vel_err = sqrt(vel_err(:,1).^2+ vel_err(:,2).^2);
     ver_vel_err = abs(vel_err(:,3));
     
-    isfixed1= find(sol_rov(irov,9)==4);
+    isfixed1= find(sol_rov(:,9)==4);
     fixed_rate = length(isfixed1)/length(irov);
     pos_flt     = find(sol_rov(irov,9)==5);
     pos_fix     = find(sol_rov(irov,9)==4);
@@ -50,11 +50,11 @@ function [soldif, pos_err, vel_err] = csvdif_analyze(sol_rov, sol_ref)
     if (num_flt>0)
         rms_hor_flt=sqrt(sum(hor_err_flt.^2)/num_flt);
         rms_ver_flt=sqrt(sum(ver_err_flt.^2)/num_flt);
-        hor_50p_flt =hor_err_flt(round(0.68*num_flt));
+        hor_50p_flt =hor_err_flt(round(0.50*num_flt));
         hor_68p_flt =hor_err_flt(round(0.68*num_flt));
         hor_95p_flt =hor_err_flt(round(0.95*num_flt));
         hor_99p_flt =hor_err_flt(round(0.99*num_flt));
-        ver_50p_flt =ver_err_flt(round(0.68*num_flt));
+        ver_50p_flt =ver_err_flt(round(0.50*num_flt));
         ver_68p_flt =ver_err_flt(round(0.68*num_flt));
         ver_95p_flt =ver_err_flt(round(0.95*num_flt));
         ver_99p_flt =ver_err_flt(round(0.99*num_flt));
@@ -76,10 +76,10 @@ function [soldif, pos_err, vel_err] = csvdif_analyze(sol_rov, sol_ref)
     hor_flt  =[hor_50p_flt hor_68p_flt hor_95p_flt hor_99p_flt];
     hor_fixed=[hor_50p_fix hor_68p_fix hor_95p_fix hor_99p_fix];
     hor_all  =[hor_50p_all hor_68p_all hor_95p_all hor_99p_all];
-    
+    ver
     ver_flt  =[ver_50p_flt ver_68p_flt ver_95p_flt ver_99p_flt];
-    ver_fixed=[ver_50p_fix ver_68p_fix hor_95p_fix ver_99p_fix];
-    ver_all  =[ver_50p_all ver_68p_all hor_95p_all ver_99p_all];
+    ver_fixed=[ver_50p_fix ver_68p_fix ver_95p_fix ver_99p_fix];
+    ver_all  =[ver_50p_all ver_68p_all ver_95p_all ver_99p_all];
     
     soldif.rms_hor_fix     = rms_hor_fix;
     soldif.rms_ver_fix     = rms_ver_fix;

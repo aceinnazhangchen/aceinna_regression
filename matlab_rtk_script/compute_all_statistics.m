@@ -36,11 +36,11 @@ function solall = compute_all_statistics(fid1, soldif)
     num_flt =length(hor_pos_err_flt);
     num_fix =length(hor_pos_err_fix);
     if (num_flt>0)
-        hor_50p_flt =hor_pos_err_flt(round(0.68*num_flt));
+        hor_50p_flt =hor_pos_err_flt(round(0.50*num_flt));
         hor_68p_flt =hor_pos_err_flt(round(0.68*num_flt));
         hor_95p_flt =hor_pos_err_flt(round(0.95*num_flt));
         hor_99p_flt =hor_pos_err_flt(round(0.99*num_flt));
-        ver_50p_flt =ver_pos_err_flt(round(0.68*num_flt));
+        ver_50p_flt =ver_pos_err_flt(round(0.50*num_flt));
         ver_68p_flt =ver_pos_err_flt(round(0.68*num_flt));
         ver_95p_flt =ver_pos_err_flt(round(0.95*num_flt));
         ver_99p_flt =ver_pos_err_flt(round(0.99*num_flt));
@@ -61,8 +61,8 @@ function solall = compute_all_statistics(fid1, soldif)
     hor_fixed=[hor_50p_fix hor_68p_fix hor_95p_fix hor_99p_fix];
     hor_all  =[hor_50p_all hor_68p_all hor_95p_all hor_99p_all];  
     ver_flt  =[ver_50p_flt ver_68p_flt ver_95p_flt ver_99p_flt];
-    ver_fixed=[ver_50p_fix ver_68p_fix hor_95p_fix ver_99p_fix];
-    ver_all  =[ver_50p_all ver_68p_all hor_95p_all ver_99p_all];
+    ver_fixed=[ver_50p_fix ver_68p_fix ver_95p_fix ver_99p_fix];
+    ver_all  =[ver_50p_all ver_68p_all ver_95p_all ver_99p_all];
     
     solall.hor_pos_err_all = hor_pos_err_all;
     solall.ver_pos_err_all = ver_pos_err_all;

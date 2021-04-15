@@ -44,11 +44,11 @@ function gen_rtk_table(doc, csvFile) {
     });
   
     const rows = [
-      ['hpos', 'Horizonal-fixed', '50p-fix', '68p-fix', '95p-fix', '99p-fix', 'fix'],
+      ['hpos', 'Horizontal-fixed', '50p-fix', '68p-fix', '95p-fix', '99p-fix', 'fix'],
       ['vpos', 'Vertical-fixed','50p-fix', '68p-fix', '95p-fix', '99p-fix', 'fix'],
-      ['hpos', 'Horizonal-float', '50p-flt', '68p-flt', '95p-flt', '99p-flt', 'flt'],
+      ['hpos', 'Horizontal-float', '50p-flt', '68p-flt', '95p-flt', '99p-flt', 'flt'],
       ['vpos', 'Vertical-float', '50p-flt', '68p-flt', '95p-flt', '99p-flt', 'flt'],
-      ['hpos', 'Horizonal-all', '50p-all', '68p-all', '95p-all', '99p-all', 'all'],
+      ['hpos', 'Horizontal-all', '50p-all', '68p-all', '95p-all', '99p-all', 'all'],
       ['vpos', 'Vertical-all', '50p-all', '68p-all', '95p-all', '99p-all', 'all'],
     ];
     rows.forEach(item => {
