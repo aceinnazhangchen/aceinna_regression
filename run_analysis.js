@@ -63,7 +63,7 @@ function gen_matlab_config(git_ver){
                 let ext = path.extname(file);
                 if(Csv_Ext == ext){
                     csv_file = file;
-                }else if(file.endsWith("_result_odo.txt")){
+                }else if(file.endsWith("_result.txt")){
                     odo_file = file;
                 }
                 if(csv_file != "" && odo_file != ""){
@@ -147,11 +147,7 @@ function merge_ins_csv(git_ver){
         }        
     });
     var csv_fd = fs.openSync(path.join(setting.workspace_root,setting.result_data_folder,git_ver,"all_ins_average.csv"),"w");
-    //let header1_sp = header1.split(',');
-    //header1_sp = header1_sp.slice(0,1).concat(header1_sp.slice(3,Column));
     fs.writeSync(csv_fd,header1+'\r\n');
-    //let header2_sp = header2.split(',');
-    //header2_sp = header2_sp.slice(0,1).concat(header2_sp.slice(3,Column));
     fs.writeSync(csv_fd,header2+'\r\n');
     if(count > 0){
         for(let i = 0;i < 2;i++){
