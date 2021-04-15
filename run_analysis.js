@@ -111,7 +111,7 @@ function merge_ins_csv(git_ver){
     for(let i = 0;i < 2;i++){
         let arr = []
         for(let j = 1;j< Column;j++){
-            if(j <= 3){
+            if(j < 3){
                 arr[j] = "";
             }
             else{
@@ -155,7 +155,7 @@ function merge_ins_csv(git_ver){
     fs.writeSync(csv_fd,header2+'\r\n');
     if(count > 0){
         for(let i = 0;i < 2;i++){
-            for(let j = 1;j< Column;j++){
+            for(let j = 3;j< Column;j++){
                 sum_array[i][j] = sum_array[i][j]/count;
                 sum_array[i][j] = sum_array[i][j].toFixed(2);
             }

@@ -20,7 +20,7 @@ function [soldif, pos_err, vel_err] = csvdif_analyze(sol_rov, sol_ref)
     hor_vel_err = sqrt(vel_err(:,1).^2+ vel_err(:,2).^2);
     ver_vel_err = abs(vel_err(:,3));
     
-    isfixed1= find(sol_rov(:,9)==4);
+    isfixed1= find(sol_rov(irov,9)==4);
     fixed_rate = length(isfixed1)/length(irov);
     pos_flt     = find(sol_rov(irov,9)==5);
     pos_fix     = find(sol_rov(irov,9)==4);
