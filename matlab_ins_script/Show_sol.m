@@ -1,7 +1,7 @@
 function Show_sol(type,sol,ref,dsc_nogs,t_nogps,filefolder)
-%���ݶ���
-t_process = t_nogps(1,:);  %���ݴ���ʱ���
-t_cut = t_process;         %���ݷ���ʱ��Σ��˴�һ��
+%数据对齐
+t_process = t_nogps(1,:);  %数据处理时间段
+t_cut = t_process;         %数据分析时间段，此处一致
 
 idx = strfind(filefolder, 'dev_');
 sys_name = filefolder(idx+4:idx+10);
@@ -22,7 +22,7 @@ if (type >= 3)
     true_c(:,10)=interp1_Azimuth(ref(:,1),ref(:,10)-2*pi,sol_c(:,1));
 end
 
-%����ϵ�任����ʼλ�ð��ղο���λ��
+%坐标系变换，起始位置按照参考首位置
 WGS84=GetWGS84;
 M=RC_Meridian(WGS84.a, WGS84.e2, true_c(1,2));
 N=RC_PrimeVertical(WGS84.a, WGS84.e2, true_c(1,2));
@@ -34,7 +34,7 @@ r_E_true=(true_c(:,3)-true_c(1,3))*(N+true_c(1,4))*cos(true_c(1,2));
 t_shift=floor(true_c(1,1)/10000)*10000;
 t_disp=sol_c(:,1)-t_shift;
 
-%��⵼�����
+%求解导航误差
 error_r = [ r_N_sol-r_N_true, r_E_sol-r_E_true, sol_c(:,4)-true_c(:,4)];
 error_v(:,1:2) = sol_c(:,5:6)-true_c(:,5:6);
 error_v(:,3) = sol_c(:,7)+true_c(:,7);
@@ -46,27 +46,16 @@ azimuth_error(I1)=azimuth_error(I1)+2*pi;
 I2=find(azimuth_error>+(2*pi-az_limit));
 azimuth_error(I2)=azimuth_error(I2)-2*pi;
 error_A=[sol_c(:,8:9)-true_c(:,8:9) azimuth_error] *180/pi;
-% error_A(:,1) = error_A(:,1)- mean(error_A(:,1));%mean(error_A(:,1)) ;
-% error_A(:,2) = error_A(:,2)- mean(error_A(:,2));%mean(error_A(:,2)) ;
-% error_A(:,3) = error_A(:,3)- mean(error_A(:,3));%mean(error_A(:,3)) ;
+% error_A(:,1) = error_A(:,1) - mean(error_A(:,1));
+% error_A(:,2) = error_A(:,2) - mean(error_A(:,2));
+% error_A(:,3) = error_A(:,3) - mean(error_A(:,3));
 error=[sol_c(:,1) error_r  error_v error_A];
-error_lon = error(:,2).* cos(true_c(:,10)) + error(:,3).* sin(true_c(:,10));
-error_cross = -error(:,2).* sin(true_c(:,10)) + error(:,3).* cos(true_c(:,10));
 
-error_v_lon = error_v(:,1).* cos(true_c(:,10)) + error_v(:,2).* sin(true_c(:,10));
-error_v_cross = -error_v(:,1).* sin(true_c(:,10)) + error_v(:,2).* cos(true_c(:,10));
-
-
-
-
-v_lon = sol_c(:,5).* cos(sol_c(:,10)) + sol_c(:,6).* sin(sol_c(:,10));
-v_cross = -sol_c(:,5).* sin(sol_c(:,10)) + sol_c(:,6).* cos(sol_c(:,10));
-
-%��������ļ�
+%保存误差文件
 fid_error =  fopen([filefolder 'error.bin'],'wb');
 fwrite(fid_error,error,'double');
 fclose(fid_error);
-%ȫ����ͼ���������
+%全场景图和误差曲线
 [N_nogps,temp]=size(t_nogps);
 if N_nogps~=0&&N_nogps~=1
     n_nogps=find( sol_c(:,1)>=t_nogps(2,1) & sol_c(:,1)<=t_nogps(2,2) );
@@ -89,7 +78,7 @@ if N_nogps~=0
 else
     legend('True','IMU/GPS'),
 end
-saveas(fh,[filefolder 'trajectory.jpg']);
+saveas(fh,[filefolder 'trajectory']);
 
 fh = figure('Visible','on'),
 subplot(311), plot(t_disp,error_r),
@@ -114,27 +103,25 @@ temp=axis;
 %hold on, plot(t_disp,sol(:,17:19)*180/pi+temp(3),':'), hold off,
 ylabel('Attitude Error (deg)'), legend('Roll','Pitch','Yaw','Location','EastOutside'), grid on;
 xlabel(['GPS Time - ' int2str(t_shift) ' (sec)']);
-saveas(fh,[filefolder 'Errorcurve.jpg']);
-%�ֳ���ͳ��������csv�ļ�������ˮƽ���ͼƬ
+saveas(fh,[filefolder 'Errorcurve']);
+%分场景统计误差，保存csv文件，绘制水平误差图片
 fp = fopen([filefolder 'result.csv'],'wt');
-%��ӡͷ
-head1 = ["scene","invalid","length","horizontal error(m)","vertical error(m)","horizontal v error(m)","vertical v error(m)","roll error(deg)","pitch error(deg)","heading error(deg)","longtitudinal error(m)","cross error(m)"];
+%打印头
+head1 = ["scene","invalid",'length',"horizontal error(m)","vertical error(m)","roll error(deg)","pitch error(deg)","heading error(deg)"];
 head2 = ["cep50","cep68","cep95","cep99"];
-fprintf(fp,'%s,%s,%s,',head1(1),head1(2),head1(3));
-for i = 4:10
+fprintf(fp,'%s,%s,',head1(1),head1(2));
+for i = 3:7
     fprintf(fp,'%s,,,,',head1(i));
 end
-fprintf(fp,'cross error(%%)');
 fprintf(fp,'\n');
 fprintf(fp,',,,');
-for i = 1:9
+for i = 1:5
     for j =1:4
         fprintf(fp,'%s,',head2(j));
     end
 end
-fprintf(fp,',');
 fprintf(fp,'\n');
-%�ֶδ�ӡ
+%分段打印
 if N_nogps~=0
     for i=1:N_nogps
         n_temp=find( true_c(:,1)>t_nogps(i,1) & true_c(:,1)<t_nogps(i,2) );
@@ -150,16 +137,13 @@ if N_nogps~=0
 
             error_horizontal = sqrt(error_r(n_temp,1).^2 + error_r(n_temp,2).^2);
             error_vertical = abs(error_r(n_temp,3));
-            error_v_horizon = sqrt(error_v(n_temp,1).^2 + error_v(n_temp,2).^2);
-            error_v_vertical =  abs(error_v(n_temp,3));
             error_roll = abs(error_A(n_temp,1));
             error_pitch = abs(error_A(n_temp,2));
             error_heading = abs(error_A(n_temp,3));
-            error_lonc = abs(error_lon(n_temp,1));
-            error_crossc = abs(error_cross(n_temp,1));          
-            num=length(error_horizontal);
+            
+                        num=length(error_horizontal);
 
-            %����ˮƽ�������
+            %绘制水平误差曲线
             if i > 0
                 fh = figure('Visible','on');
             else
@@ -174,65 +158,19 @@ if N_nogps~=0
             end
             legend(dsc_nogs(i));
             
-            saveas(fh,[filefolder char(dsc_nogs(i)) '.jpg']);
+            saveas(fh,[filefolder char(dsc_nogs(i))]);
             error_horizontal=sort(error_horizontal);
             error_vertical=sort(error_vertical);
-            error_v_horizon = sort(error_v_horizon);
-            error_v_vertical = sort(error_v_vertical);
             error_roll=sort(error_roll);
             error_pitch=sort(error_pitch);
             error_heading=sort(error_heading);
-            error_lonc=sort(error_lonc);
-            error_crossc=sort(error_crossc);          
             rtk_err(i,:)=[error_horizontal(round(0.50*num)), error_horizontal(round(0.68*num)),error_horizontal(round(0.95*num)),error_horizontal(round(0.99*num))...
                 ,error_vertical(round(0.50*num)), error_vertical(round(0.68*num)),error_vertical(round(0.95*num)),error_vertical(round(0.99*num))...
-                ,error_v_horizon(round(0.50*num)), error_v_horizon(round(0.68*num)),error_v_horizon(round(0.95*num)),error_v_horizon(round(0.99*num))...
-                ,error_v_vertical(round(0.50*num)), error_v_vertical(round(0.68*num)),error_v_vertical(round(0.95*num)),error_v_vertical(round(0.99*num))...
                 ,error_roll(round(0.50*num)), error_roll(round(0.68*num)),error_roll(round(0.95*num)),error_roll(round(0.99*num))...
                 ,error_pitch(round(0.50*num)), error_pitch(round(0.68*num)),error_pitch(round(0.95*num)),error_pitch(round(0.99*num))...
-                ,error_heading(round(0.50*num)), error_heading(round(0.68*num)),error_heading(round(0.95*num)),error_heading(round(0.99*num))...
-                ,error_lonc(round(0.50*num)), error_lonc(round(0.68*num)),error_lonc(round(0.95*num)),error_lonc(round(0.99*num))...
-                ,error_crossc(round(0.50*num)), error_crossc(round(0.68*num)),error_crossc(round(0.95*num)),error_crossc(round(0.99*num))
-                ];
-            %����CEP��CDF
-            fh=  figure;
-    cdfplot(error_horizontal);
-    hold on
-    set(gca,'FontWeight','bold','FontSize',12);
-    xlim(gca, [0 2]);
-    xlabel(gca, 'Horizontal error (m)')
-    ylabel(gca, 'CDF')
-    title('OpenRTK330LI CDF');
-    box on;
-                saveas(fh,[filefolder char(dsc_nogs(i)) 'cdf.jpg']);
-
-      id =i;
-     fh=figure;
-    hold on
-    set(gca,'xticklabel',{'','CEP50','CEP68','CEP95','CEP99',''});
-    ylim(gca, [0 2]);
-    set(gca,'FontWeight','bold','FontSize',12);
-    ylabel(gca, 'Horizontal error (m)')
-    bc=bar(rtk_err(id,1:4)');
-    set(bc,'facecolor',[0 0.5 0]);
- %   title('OpenRTK330LI CDF');
-%     legend('st teseoV-all drives');
-    grid on;
-   
-    for k=1:4
-    if (rtk_err(id,k)<5)
-    text(k,rtk_err(id,k),num2str(rtk_err(id,k),3),...
-    'FontWeight','bold','HorizontalAlignment','center',...
-     'VerticalAlignment','bottom')
-    else
-    text(k,5,num2str(rtk_err(id,k),3),...
-    'FontWeight','bold','HorizontalAlignment','center',...
-    'VerticalAlignment','bottom')
-    end
-    end 
-    
-                    saveas(fh,[filefolder char(dsc_nogs(i)) 'cep.jpg']);
-
+                ,error_heading(round(0.50*num)), error_heading(round(0.68*num)),error_heading(round(0.95*num)),error_heading(round(0.99*num))];
+            
+            
             fprintf(fp,'%s,',dsc_nogs(i));
             clear t_disp_e;
             t_disp_e = t_disp(n_temp);
@@ -241,14 +179,14 @@ if N_nogps~=0
             
             fprintf(fp,'%10.4f,',count);
             fprintf(fp,'%10.4f,',len);
-            for j =1:37
-                if (j==37)
+            for j =1:20
+                if(j==20)
                     
-                    fprintf(fp,'%.4f\n',rtk_err(i,36)/len*100); %����
+                    fprintf(fp,'%.2f\n',rtk_err(i,j)); %换行
                     
                 else
                     
-                    fprintf(fp,'%.2f,',rtk_err(i,j)); %tab������ո�
+                    fprintf(fp,'%.2f,',rtk_err(i,j)); %tab（多个空格）
                     
                 end
             end
