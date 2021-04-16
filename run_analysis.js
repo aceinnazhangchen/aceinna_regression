@@ -52,9 +52,11 @@ function gen_time_txt(dir){
         const sheet = workSheets[0];
         var lines = [];
         for(let i = 1;i <sheet.data.length; i++){
-            if(sheet.data[i].length == 8){
-                let line = util.format("%s:%d,%d,%d",sheet.data[i][0],sheet.data[i][6],sheet.data[i][7],sheet.data[i][1]);
-                lines.push(line);
+            if(sheet.data[i].length >= 8){
+                if(sheet.data[i][6] != null && sheet.data[i][7] != null){
+                    let line = util.format("%s:%d,%d,%d",sheet.data[i][0],sheet.data[i][6],sheet.data[i][7],sheet.data[i][1]);
+                    lines.push(line);
+                }
             }            
         }
         lines.push("ref2gnss:0.0,0.0,0.0");
