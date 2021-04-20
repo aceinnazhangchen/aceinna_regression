@@ -5,7 +5,10 @@ const moment = require('moment');
 const xlsx = require('node-xlsx');
 
 const {
-  gen_ins_table
+  gen_ins_table,
+  gen_inceptio_requirement,
+  gen_inceptio_table,
+  gen_inceptio_allTable
 } = require('./ins');
 
 const {
@@ -53,7 +56,37 @@ function gen_single_pdf(output_path, pdf_name, data_name){
   });
   doc.text(`     ${data_name}`);
 
-  doc.text('3. RTK result', {
+  doc.text('3. Requirement', {
+    color: '#007f7b',
+    fontSize: 14,
+    lineHeight: 2.5
+  });
+
+  doc.text('In order to meet the requirements of different customers, Aceinna added a requirements assessment to the Aceinna Regression-test. Customers can send test data in a fixed format and requirements to Aceinna, and Aceinna will return a pass or fail result according to different customer requirements.', {
+    lineHeight: 1.8,
+  });
+
+  doc.text('3.1. Inceptio Requirement', {
+    color: '#007f7b',
+    fontSize: 12,
+    lineHeight: 2
+  });
+
+  gen_inceptio_requirement(doc);
+
+  doc.pageBreak();
+
+  doc.text('3.2. Inceptio requirement assessment', {
+    color: '#007f7b',
+    fontSize: 12,
+    lineHeight: 2
+  });
+  const insDir = path.join(output_path, 'ins');
+  const insCsvFile = path.join(insDir, 'result.csv');
+  gen_inceptio_table(doc, insCsvFile);
+
+  doc.pageBreak();
+  doc.text('4. RTK result', {
     color: '#007f7b',
     fontSize: 14,
     lineHeight: 2.5
@@ -176,8 +209,6 @@ function gen_single_pdf(output_path, pdf_name, data_name){
   });
 
 
-  const insDir = path.join(output_path, 'ins');
-  const insCsvFile = path.join(insDir, 'result.csv');
   const insCsvStr = fs.readFileSync(insCsvFile).toString();
   const insCsvArr = insCsvStr.split('\n');
 
@@ -198,13 +229,21 @@ function gen_single_pdf(output_path, pdf_name, data_name){
   gen_img(doc, path.join(insDir, 'trajectory.jpg'), 'Trajectory of the drive test');
 
 
+  let cIdx = 0;
   insDataArr.forEach((item, i)=> {
     if (item.length === 0) {
       return;
     }
 
-    const caseName = item.split(',')[0];
-    doc.text(`4.${i+1} Case ${i+1}: ${caseName}`, {
+    const itemArr = item.split(',');
+    const scenrio = parseInt(itemArr[1]);
+    if (!(scenrio === 0 || scenrio === 1)) {
+      return;
+    }
+    const caseName = itemArr[0];
+
+    cIdx++;
+    doc.text(`4.${cIdx} Case ${cIdx}: ${caseName}`, {
       color: '#007f7b',
       fontSize: 14,
       lineHeight: 2.5
@@ -281,47 +320,7 @@ function gen_full_pdf(data_path, pdf_name){
     textAlign: 'center',
     lineHeight: 5,
   });
-  const table = doc.table({
-    widths: ['*', '*'],
-    borderWidth: 1,
-  });
-  const header = table.header({
-    backgroundColor: '#007f7b',
-    color: '#FFFFFF',
-    lineHeight: 1.8,
-  });
-  header.cell('Scenario', { textAlign: 'center', fontSize: 15, });
-  header.cell('Required Performance', { textAlign: 'center', fontSize: 15 });
-
-  const performances = [
-    {
-      scenario: 'GPS and RTK ready without blockage',
-      required: '· Postion error < 10cm\r\n· Heading < 0.2 deg\r\n· Position change between 2 message < 110% real velocity * dt\r\n·Heading change between 2 message < 110% real yaw rate * dt'
-    },
-    {
-      scenario: 'GPS blockage for at most 3 seconds',
-      required: '· Postion error < 10cm\r\n· Heading < 0.2 deg\r\n· Position change between 2 message < 200% real velocity * dt\r\n· Heading change between 2 message < 200% real yaw rate * dt'
-    },
-    {
-      scenario: 'In tunnel GPS and RTK losts',
-      required: '· Lateral Position error < 0.5% of the total distance travelled\r\n· Longitudinal Position error < 2% of the total distance travelled\r\n· Heading < 1% of the total angle rotated or 0.2 deg which is bigger'
-    },
-    {
-      scenario: 'Exit tunnel with GPS and RTK back (solution in recovering stage)',
-      required: '· Position error recovering to < 30cm in 3 seconds\r\· Heading error recovering to < 0.6 deg in 3 seconds\r\n· Position change between 2 message < 200% real velocity * dt\r\n· Heading change between 2 message < 200% real yaw rate * dt\r\n'
-    }
-  ];
-
-  performances.forEach(item => {
-    const pRow = table.row();
-    pRow.cell(item.scenario, {
-      paddingTop: 40,
-      paddingLeft: 10
-    });
-    pRow.cell(item.required, {
-      padding: 10
-    });
-  });
+  gen_inceptio_requirement(doc);
 
   doc.pageBreak();
   doc.text('2.Configuration', {
@@ -339,22 +338,22 @@ function gen_full_pdf(data_path, pdf_name){
   gen_img(doc, path.join(__dirname,'images/conf2.jpg'), 'Figure 2 Block diagram of the test hardware conﬁguration');
 
   doc.text('The test system consisted of hardware for capturing and logging raw GNSS observations from a variety of receivers, as well as capturing the output in real-time. The hardware was mounted in a stainless steel sheet. The hardware conﬁguration for the test is shown in ', {
-    lineHeight: 1.5
+    lineHeight: 1.8
   }).add('Figure 2', {
     fontSize: 14
   }).add('.');
 
   doc.text('The test hardware consisted of an active GNSS antenna connected to a 4-port passive Radio Frequency (RF) splitter that distributed the GNSS signal to various GNSS receivers. Internet connectivity was provided to the DELL Latitude 7400 laptop computer via a HUAWEI wireless router that used a CHINA UNICOM cellular modem. The WiFi router was connected to the laptop computer via an Ethernet cable.', {
-    lineHeight: 1.5
+    lineHeight: 1.8
   });
   doc.text('The test setup included two different GNSS receivers: an OpenRTK receiver and a Novatel SPAN CTP7 dual-frequency RTK receiver used as a truth reference. Power for the active antenna was passed through the RF splitter from the SPAN CTP7. A DELL Latitude 7400 laptop computer was used to log data from both receivers.', {
-    lineHeight: 1.5
-  }).br().br();
+    lineHeight: 1.8
+  }).br();
 
   doc.text('3.Dataset List', {
     color: '#007f7b',
     fontSize: 16,
-  }).br().br();
+  }).br();
 
   const dsTab = doc.table({
     widths: ['*', '*', '*', '*'],
@@ -410,7 +409,13 @@ function gen_full_pdf(data_path, pdf_name){
     fontSize: 16,
   }).br();
 
-  doc.text('4.1 RTK results', {
+  doc.text('4.1 Inceptio requirement assessment', {
+    color: '#007f7b',
+    fontSize: 14,
+  }).br();
+  gen_inceptio_allTable(doc);
+
+  doc.text('4.2 RTK results', {
     color: '#007f7b',
     fontSize: 14,
   }).br();
@@ -425,7 +430,7 @@ function gen_full_pdf(data_path, pdf_name){
   doc.pageBreak();
   gen_img(doc, path.join(data_path, 'all_res-cep.jpg'), 'Statistic bar of RTK horizontal position errors in the driving test scenario');
 
-  doc.text('4.2 INS results', {
+  doc.text('4.3 INS results', {
     color: '#007f7b',
     fontSize: 14,
   }).br();
