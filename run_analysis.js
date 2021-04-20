@@ -7,6 +7,7 @@ const map_ini = require("./load/map_ini.js");
 const xlsx = require('node-xlsx');
 const util = require('util');
 
+const Result_End = "_result.txt";
 const Csv_Ext = ".csv";
 const Rtcm_Rover_Header = "rtcm_rover_";
 var matlab_rtk_script_path = "";
@@ -30,7 +31,7 @@ function move_result_data(git_ver){
         if(fs.existsSync(indir)){
             mkdirsSync(outdir);
             const files = fs.readdirSync(indir);
-            files.forEach((file,index2) => {
+            files.forEach((file,index) => {
                 let ext = path.extname(file);
                 if(Csv_Ext == ext || ".nmea" == ext || ".kml" == ext || ".kmz" == ext || ".txt" == ext){
                     if(file != "time.txt"){
@@ -66,6 +67,71 @@ function gen_time_txt(dir){
     }
 }
 
+function find_result_file(outdir){
+    let result_file = "";
+    const files = fs.readdirSync(outdir);
+    for(let i in files){
+        let file = files[i];
+        if(fs.statSync(path.join(outdir,file)).isFile() && file.endsWith(Result_End)){
+            result_file = path.join(outdir,file);
+            break;
+        }
+    }
+    return result_file;
+}
+
+function gen_time_txt_2(git_ver){
+    map_ini.RawList.forEach((dir,index) => {
+        var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
+        if(fs.existsSync(outdir) == false) return;
+        let result_file = find_result_file(outdir);
+        if(fs.existsSync(result_file) == false) return;
+        console.log(result_file);
+        let content = fs.readFileSync(result_file,'utf-8');
+        let lines = content.split('\r\n');
+        let time = 0;
+        let delay = 0;
+        let speed_sum = 0.0;
+        let lost_epoch = 0;
+        let speed = 0.0;
+        let gps_lost = false;
+        let gps_lost_start = 0;
+        let gps_lost_end = 0;
+        for(let i = lines.length-1;i >= 0;i--){
+            if(lines[i].length > 0){
+                let items = lines[i].split(',');
+                if(items.length >= 24){
+                    time = items[1];
+                    delay = parseFloat(items[23]);
+                    if(delay < 0) continue;
+                    speed = Math.sqrt( Math.pow(parseFloat(items[5]),2) + Math.pow(parseFloat(items[6]),2) + Math.pow(parseFloat(items[7]),2) );
+                    if(delay > 15 && gps_lost == false){
+                        speed_sum = 0.0;
+                        lost_epoch = 0;
+                        gps_lost_end = time;
+                        gps_lost = true;
+                    }
+                    if(gps_lost == true){
+                        speed_sum += speed;
+                        lost_epoch++;
+                    }
+                    if(delay <= 0.1 &&  gps_lost == true){
+                        gps_lost_start = time;
+                        gps_lost = false;
+                        let avg_speed = speed_sum/lost_epoch;
+                        if(avg_speed > 10){
+                            console.log("lost time:",gps_lost_start,gps_lost_end,gps_lost_end - gps_lost_start,avg_speed);
+                        }
+                    }
+                }
+            }
+            // if(i == 0 || i == lines.length-1){
+            //     console.log(time,delay);
+            // }
+        }
+    });
+}
+
 function gen_matlab_config(git_ver){
     var matlab_rtk_fd = fs.openSync(path.join(matlab_rtk_script_path,"rtk.ini"),"w");
     var matlab_ins_fd = fs.openSync(path.join(matlab_ins_script_path,"ins.ini"),"w");
@@ -75,7 +141,7 @@ function gen_matlab_config(git_ver){
     map_ini.RawList.forEach((dir,index) => {
         var indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
-        gen_time_txt(indir);
+        //gen_time_txt(indir);
         if(fs.existsSync(outdir)){   
             const files = fs.readdirSync(outdir);
             let csv_file = "";
@@ -193,6 +259,7 @@ async function run(git_ver){
     move_result_data(git_ver);
     //生成matlab配置文件
     gen_matlab_config(git_ver);
+    gen_time_txt_2(git_ver);
     //运行matlab分析结果生成图表
     spawnSync('matlab',['-sd',matlab_rtk_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_rtk_csv_analyze','-logfile','../output/matlab.log'],{stdio: 'inherit'});
     spawnSync('matlab',['-sd',matlab_ins_script_path,'-wait','-noFigureWindows','-automation','-nosplash','-nodesktop','-r','main_post_odo_ins_test','-logfile','../output/matlab.log'],{stdio: 'inherit'});
