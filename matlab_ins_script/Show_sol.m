@@ -138,20 +138,32 @@ fprintf(fp,',');
 fprintf(fp,'\n');
 %分段打印
 if N_nogps~=0
-    scenrio = 0;
-    for i=1:N_nogps+2
+    scenario = 0;
+    for i=1:N_nogps+3
         if (i == N_nogps+1)
+            dsc_nogs(i) = "Exit tunnel";
+            scenario = 5;
+            t_temp=t_nogps(3:i-1,2)+3;
+            [C,ia,ib]=intersect(t_temp,floor(true_c(:,1)));
+            ib2matrix=ib*ones(1,10);
+            ib_t=ib2matrix';
+            ib_array=ib_t(:);
+            ten=[0;1;2;3;4;5;6;7;8;9];
+            ten_expand=repmat(ten,length(ib),1);
+            n_temp=ib_array+ten_expand;
+            len=1;
+        elseif (i == N_nogps+2)
             dsc_nogs(i) = "Without blockage";
              n_temp=find( sol_c(:,23)>= 0 & sol_c(:,23)<= 1 );
-             scenrio = 2;
+             scenario = 2;
              len = 1;
-        elseif(i == N_nogps+2)
+        elseif(i == N_nogps+3)
              dsc_nogs(i) = "With blockage 3sec";
               n_temp=find( sol_c(:,23)> 1.0  & sol_c(:,23)<= 3.0 );
-              scenrio = 3;
+              scenario = 3;
               len =1;
         else
-            scenrio = t_nogps(i,3);
+            scenario = t_nogps(i,3);
         n_temp=find( true_c(:,1)>t_nogps(i,1) & true_c(:,1)<t_nogps(i,2) );
         lenth_cur =  sqrt(true_c(n_temp,5).^2 +true_c(n_temp,6).^2);
         len = mean(lenth_cur) * (t_nogps(i,2)-t_nogps(i,1));
@@ -176,22 +188,7 @@ if N_nogps~=0
             error_lonc = abs(error_lon(n_temp,1));
             error_crossc = abs(error_cross(n_temp,1));          
             num=length(error_horizontal);
-
-            %绘制水平误差曲线
-            if i > 0
-                fh = figure('Visible','on');
-            else
-                fh = figure('Visible','off');
-            end
-            plot(t_disp(n_temp),error_horizontal, '.-'),
-            ylabel('Horizontal error (m)'), title(sys_name, 'Interpreter', 'None'), grid on;
-            if t_shift==0
-                xlabel(' Time (sec)');
-            else
-                xlabel(['Time -' int2str(t_shift) ' (sec)']);
-            end
-            legend(dsc_nogs(i));
-            saveas(fh,[filefolder char(dsc_nogs(i)) '.jpg']);
+           
             error_horizontal=sort(error_horizontal);
             error_vertical=sort(error_vertical);
             error_v_horizon = sort(error_v_horizon);
@@ -211,7 +208,24 @@ if N_nogps~=0
                 ,error_lonc(round(0.50*num)), error_lonc(round(0.68*num)),error_lonc(round(0.95*num)),error_lonc(round(0.99*num))...
                 ,error_crossc(round(0.50*num)), error_crossc(round(0.68*num)),error_crossc(round(0.95*num)),error_crossc(round(0.99*num))
                 ];
-    if(scenrio == 0 || scenrio == 1)
+    if(scenario == 0 || scenario == 1)
+
+     %绘制水平误差曲线
+            if i > 0
+                fh = figure('Visible','on');
+            else
+                fh = figure('Visible','off');
+            end
+            plot(t_disp(n_temp),error_horizontal, '.-'),
+            ylabel('Horizontal error (m)'), title(sys_name, 'Interpreter', 'None'), grid on;
+            if t_shift==0
+                xlabel(' Time (sec)');
+            else
+                xlabel(['Time -' int2str(t_shift) ' (sec)']);
+            end
+            legend(dsc_nogs(i));
+            saveas(fh,[filefolder char(dsc_nogs(i)) '.jpg']);
+            
         fh=  figure;
         cdfplot(error_horizontal);
         hold on
@@ -255,7 +269,7 @@ if N_nogps~=0
             t_disp_e = t_disp(n_temp);
             count = (num/((1/t_dt)*(t_disp_e(end)-t_disp_e(1)) + 1))*100;
             clear t_disp_e;
-            fprintf(fp,'%d,',scenrio);
+            fprintf(fp,'%d,',scenario);
             fprintf(fp,'%10.4f,',count);
             fprintf(fp,'%10.4f,',len);
             for j =1:37

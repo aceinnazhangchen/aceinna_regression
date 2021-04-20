@@ -194,14 +194,14 @@ function gen_pdf_files(git_ver){
 }
 
 function merge_ins_csv(git_ver){
-    const Column = 39;
+    const Column = 40;
     let header1 = "";
     let header2 = ""
     let sum_array = [];
     for(let i = 0;i < 2;i++){
         let arr = []
         for(let j = 1;j< Column;j++){
-            if(j < 3){
+            if(j < 4){
                 arr[j] = "";
             }
             else{
@@ -227,7 +227,7 @@ function merge_ins_csv(git_ver){
                 let data_sp = data_lines[i].split(',');
                 if(data_sp.length > Column){
                     sum_array[i][0] = data_sp[0];
-                    for(let j = 3;j < Column;j++){
+                    for(let j = 4;j < Column;j++){
                         sum_array[i][j] = sum_array[i][j] + parseFloat(data_sp[j]);              
                     }
                 }
@@ -241,7 +241,7 @@ function merge_ins_csv(git_ver){
     fs.writeSync(csv_fd,header2+'\r\n');
     if(count > 0){
         for(let i = 0;i < 2;i++){
-            for(let j = 3;j< Column;j++){
+            for(let j = 4;j< Column;j++){
                 sum_array[i][j] = sum_array[i][j]/count;
                 sum_array[i][j] = sum_array[i][j].toFixed(2);
             }
