@@ -4,6 +4,8 @@ const spawnSync = require('child_process').spawnSync;
 const pdf = require('./pdf/pdf.js');
 const setting = require('./config/process_setting.json');
 const map_ini = require("./load/map_ini.js");
+const xlsx = require('node-xlsx');
+const util = require('util');
 
 const Csv_Ext = ".csv";
 const Rtcm_Rover_Header = "rtcm_rover_";
@@ -43,6 +45,27 @@ function move_result_data(git_ver){
     });
 }
 
+function gen_time_txt(dir){
+    const execlFile = path.join(dir, 'requirement.xlsx');
+    if(fs.existsSync(execlFile)){
+        const workSheets = xlsx.parse(execlFile);
+        const sheet = workSheets[0];
+        var lines = [];
+        for(let i = 1;i <sheet.data.length; i++){
+            if(sheet.data[i].length >= 8){
+                if(sheet.data[i][6] != null && sheet.data[i][7] != null){
+                    let line = util.format("%s:%d,%d,%d",sheet.data[i][0],sheet.data[i][6],sheet.data[i][7],sheet.data[i][1]);
+                    lines.push(line);
+                }
+            }            
+        }
+        lines.push("ref2gnss:0.0,0.0,0.0");
+        lines.push("ref2imu:0.0,0.0,0.0");
+        lines.push("ref2ublox:0.0,0.0,0.0");
+        fs.writeFileSync(path.join(dir, 'time.txt'),lines.join("\r\n"));
+    }
+}
+
 function gen_matlab_config(git_ver){
     var matlab_rtk_fd = fs.openSync(path.join(matlab_rtk_script_path,"rtk.ini"),"w");
     var matlab_ins_fd = fs.openSync(path.join(matlab_ins_script_path,"ins.ini"),"w");
@@ -52,7 +75,8 @@ function gen_matlab_config(git_ver){
     map_ini.RawList.forEach((dir,index) => {
         var indir = path.join(setting.workspace_root,setting.raw_data_folder,dir);
         var outdir = path.join(setting.workspace_root,setting.result_data_folder,git_ver,dir);
-        if(fs.existsSync(outdir)){
+        gen_time_txt(indir);
+        if(fs.existsSync(outdir)){   
             const files = fs.readdirSync(outdir);
             let csv_file = "";
             let odo_file = "";
