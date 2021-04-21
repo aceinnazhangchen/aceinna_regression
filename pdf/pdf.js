@@ -19,8 +19,13 @@ const {
   gen_rtk_table
 } = require('./rtk');
 
-function gen_single_pdf(output_path, pdf_name, data_name){
-  const output = fs.createWriteStream(path.join(output_path, pdf_name));
+function gen_single_pdf(resultDir, curVer, benchmarkVer, dataset, dataName){
+  const curVerDir = path.join(resultDir, curVer, dataset);
+  let benchmarkVerDir = '';
+  if (benchmarkVer !== '' && benchmarkVer !== curVer) {
+    benchmarkVerDir = path.join(resultDir, benchmarkVer, dataset);
+  }
+  const output = fs.createWriteStream(path.join(curVerDir, dataName + '.pdf'));
   const doc = new pdf.Document();
 
   const pdfHeader = doc.table({
@@ -54,9 +59,19 @@ function gen_single_pdf(output_path, pdf_name, data_name){
     fontSize: 14,
     lineHeight: 2.5,
   });
-  doc.text(`     ${data_name}`);
+  doc.text(`     ${dataName}`);
 
-  doc.text('3. Requirement', {
+  doc.text('3. Version', {
+    color: '#007f7b',
+    fontSize: 14,
+    lineHeight: 2.5,
+  });
+  doc.text(`     Current: ${curVer}`);
+  if (benchmarkVer !== '' && benchmarkVer !== curVer) {
+    doc.text(`     Benchmark: ${benchmarkVer}`);
+  }
+
+  doc.text('4. Requirement', {
     color: '#007f7b',
     fontSize: 14,
     lineHeight: 2.5
@@ -66,7 +81,7 @@ function gen_single_pdf(output_path, pdf_name, data_name){
     lineHeight: 1.8,
   });
 
-  doc.text('3.1. Inceptio Requirement', {
+  doc.text('4.1. Inceptio Requirement', {
     color: '#007f7b',
     fontSize: 12,
     lineHeight: 2
@@ -76,133 +91,47 @@ function gen_single_pdf(output_path, pdf_name, data_name){
 
   doc.pageBreak();
 
-  doc.text('3.2. Inceptio requirement assessment', {
+  doc.text('4.2. Inceptio requirement assessment', {
     color: '#007f7b',
     fontSize: 12,
     lineHeight: 2
   });
-  const insDir = path.join(output_path, 'ins');
+  const insDir = path.join(curVerDir, 'ins');
   const insCsvFile = path.join(insDir, 'result.csv');
   gen_inceptio_table(doc, insCsvFile);
 
   doc.pageBreak();
-  doc.text('4. RTK result', {
+  doc.text('5. RTK result', {
     color: '#007f7b',
     fontSize: 14,
     lineHeight: 2.5
   });
 
-  const rtkCsvFile = path.join(output_path, 'rtk_statistic.txt');
-  const rtkCsvStr = fs.readFileSync(rtkCsvFile).toString();
-  const rtkCsvArr = rtkCsvStr.split('\n');
-  let csvHeader = [];
-  let hpos = {};
-  let vpos = {};
-  rtkCsvArr.forEach((item, i) => {
-    const itemArr = item.split(',');
-    const itemFile = itemArr.shift();
-    if (i === 0) {
-      itemArr.forEach((ele) => {
-        csvHeader.push(ele.trim());
-      });
-    } else {
-      if (itemFile.endsWith(data_name)) {
-        const pos = {};
-        itemArr.forEach((ele, i) => {
-          pos[csvHeader[i]] = ele.trim();
-        });
-        if (itemArr[0] === 'hpos') {
-          hpos = pos;
-        }
-        if (itemArr[0] === 'vpos') {
-          vpos = pos;
-        }
-      }
-    }
-  });
-
-  const headerArr = ['Type', 'CEP50', 'CEP68', 'CEP95', 'CEP99', 'Rate(%)'];
-  const table = doc.table({
-    widths: new Array(headerArr.length).fill('*'),
-    borderWidth: 1,
-  });
-
-  const header = table.header({
-    backgroundColor: '#007f7b',
-    color: '#FFFFFF',
-    lineHeight: 2,
-  });
-  
-  headerArr.forEach(item => {
-    header.cell(item, { textAlign: 'center' });
-  });
-
-  const rows = [
-    ['hpos', 'Horizontal-fixed', '50p-fix', '68p-fix', '95p-fix', '99p-fix', 'fix'],
-    ['vpos', 'Vertical-fixed','50p-fix', '68p-fix', '95p-fix', '99p-fix', 'fix'],
-    ['hpos', 'Horizontal-float', '50p-flt', '68p-flt', '95p-flt', '99p-flt', 'flt'],
-    ['vpos', 'Vertical-float', '50p-flt', '68p-flt', '95p-flt', '99p-flt', 'flt'],
-    ['hpos', 'Horizontal-all', '50p-all', '68p-all', '95p-all', '99p-all', 'all'],
-    ['vpos', 'Vertical-all', '50p-all', '68p-all', '95p-all', '99p-all', 'all'],
-  ];
-  rows.forEach(item => {
-    const row = table.row({
-      lineHeight: 2,
-    });
-    const dataSrc = item[0] === 'hpos' ? hpos : vpos;
-    item.forEach((ele, i) => {
-      if (i === 0) {
-       return;
-      }
-
-      if (i === 1) {
-        row.cell(ele, {
-          textAlign: 'center'
-        });
-        return;
-      }
-
-      if (i <= 5) {
-        row.cell(dataSrc[ele], {
-          textAlign: 'center'
-        });
-        return;
-      }
-
-      let rate = 0;
-      if (ele === 'fix') {
-        rate = dataSrc['fix rate'];
-      }
-      if (ele === 'flt') {
-        rate = (100 - dataSrc['fix rate']).toFixed(2);
-      }
-      if (ele === 'all') {
-        rate = 100;
-      }
-      row.cell(`${rate}`, {
-        textAlign: 'center'
-      });
-    });
-  });
+  const rtkStatisticFile = 'rtk_statistic.txt';
+  let benchmarkFile = '';
+  if (benchmarkVerDir !== '') {
+    benchmarkFile = path.join(benchmarkVerDir, rtkStatisticFile);
+  }
+  gen_rtk_table(doc, path.join(curVerDir, rtkStatisticFile), benchmarkFile);
 
   doc.text('  \r\n', {
     lineHeight: 1
   }).br();
 
-  gen_img(doc, path.join(output_path, "kml.jpg"), 'Map showing the route of the drive test');
+  gen_img(doc, path.join(curVerDir, "kml.jpg"), 'Map showing the route of the drive test');
 
   doc.pageBreak();
 
-  gen_img(doc, path.join(output_path,data_name+"-ts.jpg"), 'Time series of north, east and up position errors');
+  gen_img(doc, path.join(curVerDir, dataName+".csv-ts.jpg"), 'Time series of north, east and up position errors');
 
-  gen_img(doc, path.join(output_path,data_name+"-cdf.jpg"), 'Cumulative distribution function of RTK horizontal position errors');
+  gen_img(doc, path.join(curVerDir, dataName+".csv-cdf.jpg"), 'Cumulative distribution function of RTK horizontal position errors');
 
 
   doc.pageBreak();
 
-  gen_img(doc, path.join(output_path,data_name+"-cep.jpg"), 'Statistic bar of RTK horizontal position errors in the driving test scenario');
+  gen_img(doc, path.join(curVerDir, dataName+".csv-cep.jpg"), 'Statistic bar of RTK horizontal position errors in the driving test scenario');
 
-  doc.text('4. INS result', {
+  doc.text('6. INS result', {
     color: '#007f7b',
     fontSize: 14,
     lineHeight: 2.5
@@ -211,10 +140,19 @@ function gen_single_pdf(output_path, pdf_name, data_name){
 
   const insCsvStr = fs.readFileSync(insCsvFile).toString();
   const insCsvArr = insCsvStr.split('\n');
+  let benchmarkInsCsvArr = [];
+  if (benchmarkVerDir) {
+    const benchmarkInsDir = path.join(benchmarkVerDir, 'ins');
+    const benchmarkInsCsvFile = path.join(benchmarkInsDir, 'result.csv');
+    const benchmarkInsCsvStr = fs.readFileSync(benchmarkInsCsvFile).toString();
+    benchmarkInsCsvArr = benchmarkInsCsvStr.split('\n');
+  }
 
   const insDataArr = insCsvArr.slice(2);
   const insAllData = insDataArr.shift();
-  gen_ins_table(doc, insAllData);
+  const benchmarkInsDataArr = benchmarkInsCsvArr.slice(2);
+  const benchmarkAllData = benchmarkInsDataArr.shift();
+  gen_ins_table(doc, insAllData, benchmarkAllData);
 
 
   doc.pageBreak();
@@ -243,12 +181,12 @@ function gen_single_pdf(output_path, pdf_name, data_name){
     const caseName = itemArr[0];
 
     cIdx++;
-    doc.text(`4.${cIdx} Case ${cIdx}: ${caseName}`, {
+    doc.text(`6.${cIdx} Case ${cIdx}: ${caseName}`, {
       color: '#007f7b',
       fontSize: 14,
       lineHeight: 2.5
     });
-    gen_ins_table(doc, item);
+    gen_ins_table(doc, item, benchmarkInsDataArr[i] || '');
 
     doc.pageBreak();
     
@@ -269,9 +207,9 @@ function gen_single_pdf(output_path, pdf_name, data_name){
 }
 
 
-function gen_full_pdf(data_path, pdf_name){
-  
-  const output = fs.createWriteStream(path.join(data_path,pdf_name));
+function gen_full_pdf(resultDir, curVer, benchmarkVer, pdf_name) {
+  const data_path = path.join(resultDir, curVer);
+  const output = fs.createWriteStream(path.join(data_path, pdf_name));
   const doc = new pdf.Document();
 
   const pdfHeader = doc.table({
@@ -296,6 +234,10 @@ function gen_full_pdf(data_path, pdf_name){
     textAlign: 'center',
     lineHeight: 10,
     fontSize: 24,
+    color: '#007f7b',
+  });
+  doc.text(`Version: ${curVer}`, {
+    textAlign: 'center',
     color: '#007f7b',
   });
 
@@ -415,12 +357,18 @@ function gen_full_pdf(data_path, pdf_name){
   }).br();
   gen_inceptio_allTable(doc);
 
+  doc.pageBreak();
   doc.text('4.2 RTK results', {
     color: '#007f7b',
     fontSize: 14,
   }).br();
 
-  gen_rtk_table(doc, path.join(data_path, 'all_statistics.csv'));
+  if (benchmarkVer !== '' && benchmarkVer !== curVer) {
+    gen_rtk_table(doc, path.join(data_path, 'all_statistics.csv'), path.join(resultDir, benchmarkVer, 'all_statistics.csv'));
+  } else {
+    gen_rtk_table(doc, path.join(data_path, 'all_statistics.csv'), '');
+  }
+  
 
   doc.text('  \r\n', {
     lineHeight: 1
@@ -441,7 +389,19 @@ function gen_full_pdf(data_path, pdf_name){
 
   const insDataArr = insCsvArr.slice(2);
   const insAllData = insDataArr.shift();
-  gen_ins_table(doc, insAllData);
+
+  if (benchmarkVer !== '' && benchmarkVer !== curVer) {
+    const benchmarkInsCsvFile = path.join(resultDir, benchmarkVer, 'all_ins_average.csv');
+    const benchmarkInsCsvStr = fs.readFileSync(benchmarkInsCsvFile).toString();
+    const benchmarkInsCsvArr = benchmarkInsCsvStr.split('\n');
+  
+    const benchmarkInsDataArr = benchmarkInsCsvArr.slice(2);
+    const benchmarkInsAllData = benchmarkInsDataArr.shift();
+
+    gen_ins_table(doc, insAllData, benchmarkInsAllData);
+  } else {
+    gen_ins_table(doc, insAllData, '');
+  }
 
   doc.pipe(output);
   doc.end();

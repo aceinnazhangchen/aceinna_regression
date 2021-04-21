@@ -47,11 +47,11 @@ function solall = compute_all_statistics(fid1, soldif)
     end 
     
     if (num_fix>0)
-        hor_50p_fix =hor_pos_err_fix(round(0.5*num_fix));
+        hor_50p_fix =hor_pos_err_fix(round(0.50*num_fix));
         hor_68p_fix =hor_pos_err_fix(round(0.68*num_fix));
         hor_95p_fix =hor_pos_err_fix(round(0.95*num_fix));
         hor_99p_fix =hor_pos_err_fix(round(0.99*num_fix));
-        ver_50p_fix =ver_pos_err_fix(round(0.5*num_fix));
+        ver_50p_fix =ver_pos_err_fix(round(0.50*num_fix));
         ver_68p_fix =ver_pos_err_fix(round(0.68*num_fix));
         ver_95p_fix =ver_pos_err_fix(round(0.95*num_fix));
         ver_99p_fix =ver_pos_err_fix(round(0.99*num_fix));

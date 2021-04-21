@@ -3,7 +3,12 @@ const _ = require('underscore');
 
 const insResults = {};
 
-function gen_ins_table(doc, rowData) {
+function gen_ins_table(doc, rowData, benchmarkData) {
+    benchmarkData = benchmarkData || '';
+    let isBenchmark = false;
+    if (benchmarkData.length > 0) {
+        isBenchmark = true;
+    }
     const insHeaderArr = ['Type', 'CEP50', 'CEP68', 'CEP95', 'CEP99'];
     const insTab = doc.table({
       widths: new Array(insHeaderArr.length).fill('*'),
@@ -33,6 +38,20 @@ function gen_ins_table(doc, rowData) {
     ];
 
     const insDataArr = rowData.trim().split(',');
+    const benchmarkDataArr = benchmarkData.trim().split(',');
+    const defaultOption = {
+        textAlign: 'center'
+    };
+    
+    const passOption = {
+        textAlign: 'center',
+        color: '#008000'
+    };
+
+    const failOption = {
+        textAlign: 'center',
+        color: '#FF0000'
+    };
 
     insRows.forEach(item => {
         const row = insTab.row({
@@ -40,15 +59,19 @@ function gen_ins_table(doc, rowData) {
         });
         item.forEach((ele, i) => {
             if (i === 0) {
-            row.cell(ele, {
-                textAlign: 'center',
-            });
-            return;
+                row.cell(ele, defaultOption);
+                return;
             }
 
-            row.cell(insDataArr[ele], {
-            textAlign: 'center',
-            });
+            let option = defaultOption;
+            if (isBenchmark) {
+                if (benchmarkDataArr[ele] >= insDataArr[ele]) {
+                    option = passOption;
+                } else {
+                    option = failOption;
+                }
+            }
+            row.cell(insDataArr[ele], option);
         });
     });
 }
@@ -70,10 +93,10 @@ function gen_inceptio_requirement(doc) {
     });
 
     const inceptioRows = [
-        ['GPS and RTK ready without blockage', '· Postion error < 10cm\r\n· Heading < 0.2 deg'],
-        ['GPS blockage for at most 3 seconds', '· Postion error < 10cm\r\n· Heading < 0.2 deg'],
+        ['GPS and RTK ready without blockage', '· Position error < 10 cm\r\n· Heading < 0.2 deg'],
+        ['GPS blockage for at most 3 seconds', '· Position error < 10 cm\r\n· Heading < 0.2 deg'],
         ['In tunnel GPS and RTK lost', '· Lateral Position error < 0.5% of the total distance travelled \r\n· Longitudinal Position error < 2% of the total distance travelled\r\n· Heading 0.5 deg'],
-        ['Exit tunnel with GPS and RTK back (solution in recovering stage)', '· Position error recovering to < 30cm in 3 seconds\r\n· Heading error recovering to < 0.6 deg in 3 seconds']
+        ['Exit tunnel with GPS and RTK back (solution in recovering stage)', '· Position error recovering to < 30 cm in 3 seconds\r\n· Heading error recovering to < 0.6 deg in 3 seconds']
     ];
     inceptioRows.forEach((item, i) => {
         const row = inceptioTable.row({
@@ -164,7 +187,7 @@ function gen_inceptio_table(doc, resultFile) {
         positionRow.cell('GPS and RTK ready without blockage', {
             padding: 10,
         });
-        positionRow.cell('Postion error < 10cm', {
+        positionRow.cell('Position error < 10 cm', {
             padding: 10
         });
         const val = resultMap[2];
@@ -210,7 +233,7 @@ function gen_inceptio_table(doc, resultFile) {
         positionRow.cell('GPS blockage for at most 3 seconds', {
             padding: 10
         });
-        positionRow.cell('Postion error < 10cm', {
+        positionRow.cell('Position error < 10 cm', {
             padding: 10
         });
         const val = resultMap[3];
@@ -329,7 +352,7 @@ function gen_inceptio_table(doc, resultFile) {
         positionRow.cell('Exit tunnel with GPS and RTK back (solution in recovering stage)', {
             padding: 10
         });
-        positionRow.cell('Position error recovering to < 30cm in 3 seconds', {
+        positionRow.cell('Position error recovering to < 30 cm in 3 seconds', {
             padding: 10
         });
         const val = resultMap[5];
@@ -388,14 +411,14 @@ function gen_inceptio_allTable(doc) {
     });
 
     const checkList = [
-        {idx: 1, scenario: 'GPS and RTK ready without blockage', requirement: 'Postion error < 10cm'},
+        {idx: 1, scenario: 'GPS and RTK ready without blockage', requirement: 'Position error < 10 cm'},
         {idx: 2, scenario: 'GPS and RTK ready without blockage', requirement: 'Heading < 0.2 deg'},
-        {idx: 3, scenario: 'GPS blockage for at most 3 seconds', requirement: 'Postion error < 10cm'},
+        {idx: 3, scenario: 'GPS blockage for at most 3 seconds', requirement: 'Position error < 10 cm'},
         {idx: 4, scenario: 'GPS blockage for at most 3 seconds', requirement: 'Heading < 0.2 deg'},
         {idx: 5, scenario: 'In tunnel GPS and RTK lost', requirement: 'Lateral Position error < 0.5% of the total distance travelled'},
         {idx: 6, scenario: 'In tunnel GPS and RTK lost', requirement: 'Longitudinal Position error < 2% of the total distance travelled'},
         {idx: 7, scenario: 'In tunnel GPS and RTK lost', requirement: 'Heading 0.5 deg'},
-        {idx: 8, scenario: 'Exit tunnel with GPS and RTK back (solution in recovering stage)', requirement: 'Position error recovering to < 30cm in 3 seconds'},
+        {idx: 8, scenario: 'Exit tunnel with GPS and RTK back (solution in recovering stage)', requirement: 'Position error recovering to < 30 cm in 3 seconds'},
         {idx: 9, scenario: 'Exit tunnel with GPS and RTK back (solution in recovering stage)', requirement: 'Heading error recovering to < 0.6 deg in 3 seconds'},
     ];
 

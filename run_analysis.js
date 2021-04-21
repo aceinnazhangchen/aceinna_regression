@@ -175,22 +175,29 @@ function gen_matlab_config(git_ver){
 }
 
 function gen_pdf_files(git_ver){
-    const gitRoot = path.join(setting.workspace_root,setting.result_data_folder,git_ver);
+    const resultRoot = path.join(setting.workspace_root, setting.result_data_folder);
+    const benchmarkFile = path.join(resultRoot, 'benchmark.txt');
+    let benchmarkVer = '';
+    if (fs.existsSync(benchmarkFile)) {
+        const fileData = fs.readFileSync(benchmarkFile).toString();
+        benchmarkVer = fileData.trim();
+    }
+    const gitRoot = path.join(resultRoot, git_ver);
     map_ini.RawList.forEach((dir,i) => {
-        var outdir = path.join(gitRoot,dir);
+        var outdir = path.join(resultRoot, git_ver, dir);
         if(fs.existsSync(outdir)){
             const files = fs.readdirSync(outdir);
             files.forEach((file,j) => {
                 let ext = path.extname(file);                
                 if(Csv_Ext == ext && file.startsWith(Rtcm_Rover_Header)){
                     let basename = path.basename(file,Csv_Ext);
-                    pdf.gen_single_pdf(outdir,basename+'.pdf',file);
+                    pdf.gen_single_pdf(resultRoot, git_ver, benchmarkVer, dir, basename);
                 }
             });
         }
     });
 
-    pdf.gen_full_pdf(gitRoot, 'OpenRTK_regression.pdf');
+    pdf.gen_full_pdf(resultRoot, git_ver, benchmarkVer, 'OpenRTK_regression.pdf');
 }
 
 function merge_ins_csv(git_ver){
